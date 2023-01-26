@@ -1,0 +1,5 @@
+dataset_name: FolderDataset
+settings:
+  batch_size: 16
+  train_path: dataset/MIT_small_train_1/train
+  val_path: dataset/MIT_small_train_1/test

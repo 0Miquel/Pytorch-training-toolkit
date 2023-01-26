@@ -1,0 +1,5 @@
+model_name: Resnet50
+settings:
+  pretrained: True
+  fine_tune: True  # if fine_tuning is False, then use transfer_learning (freeze all layers except output layer)
+  n_classes: 8

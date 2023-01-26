@@ -1,0 +1,50 @@
+method: random
+metric:
+  goal: minimize
+  name: val.loss
+
+parameters:
+  optimizer.optimizer_name:
+    value: Adam
+  optimizer.settings.weight_decay:
+    max: 0.002
+    min: 0.0005
+    distribution: uniform
+  optimizer.settings.lr:
+    max: 0.002
+    min: 0.0005
+    distribution: uniform
+
+  trainer.metrics:
+    value:
+      - accuracy
+  trainer.model_path:
+    value: models/first_model.pt
+  trainer.n_epochs:
+    value: 1
+  trainer.device:
+    value: cuda
+
+  dataset.dataset_name:
+    value: FolderDataset
+  dataset.settings.train_path:
+    value: dataset/MIT_small_train_1/train
+  dataset.settings.val_path:
+    value: dataset/MIT_small_train_1/test
+  dataset.settings.batch_size:
+    value: 8
+
+  model.model_name:
+    value: Efficientnetb1
+  model.settings.pretrained:
+    value: True
+  model.settings.n_classes:
+    value: 8
+  model.settings.fine_tune:
+    values:
+      - True
+      - False
+    distribution: categorical
+
+  loss.loss_name:
+    value: CrossEntropyLoss

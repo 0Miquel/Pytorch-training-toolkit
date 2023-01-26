@@ -1,0 +1,5 @@
+model_name: Efficientnetb1
+settings:
+  pretrained: True
+  fine_tune: True  # if fine_tuning is False, then use transfer_learning
+  n_classes: 8

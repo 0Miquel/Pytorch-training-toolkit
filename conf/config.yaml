@@ -1,0 +1,8 @@
+defaults:
+  - dataset: folder_dataset
+  - loss: cross_entropy
+  - model: efficientnetb1
+  - optimizer: adam
+#  - scheduler: myscheduler
+#  - transforms: mytransforms
+  - trainer: trainer
