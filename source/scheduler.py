@@ -8,9 +8,8 @@ def get_scheduler(config, optimizer, steps_per_epoch, n_epochs):
     settings = config["settings"]
     if scheduler_name == "OneCycleLR":
         # Need steps per epoch and n_epochs for OneCycleLR
-        with open_dict(settings):
-            settings.steps_per_epoch = steps_per_epoch
-            settings.epochs = n_epochs
+        settings["steps_per_epoch"] = steps_per_epoch
+        settings["epochs"] = n_epochs
 
     try:
         scheduler = getattr(lr_scheduler, scheduler_name)(optimizer, **settings)

@@ -8,6 +8,7 @@ from source.logger import *
 from source.utils.metrics import *
 import math
 import time
+from omegaconf import OmegaConf
 
 
 def train(cfg=None, wandb_name=None):
@@ -23,6 +24,8 @@ class Trainer:
             self.log = True
             self.logger = get_logger(config, wandb_name)
             config = self.logger.cfg
+        else:
+            config = OmegaConf.to_object(config)
 
         trainer_config = config["trainer"]
         self.metrics = trainer_config["metrics"]
@@ -59,6 +62,8 @@ class Trainer:
                 # backward
                 loss.backward()
                 self.optimizer.step()
+                if self.scheduler is not None:
+                    self.scheduler.step()
                 # calculate epoch loss
                 exec_params["dataset_size"] += inputs.size(0)
                 exec_params["running_loss"] += loss.item() * inputs.size(0)

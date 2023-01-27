@@ -3,6 +3,6 @@ defaults:
   - loss: cross_entropy
   - model: efficientnetb1
   - optimizer: adam
-#  - scheduler: myscheduler
+  - scheduler: onecycle
 #  - transforms: mytransforms
   - trainer: trainer

@@ -1,3 +1,0 @@
-scheduler_name: OneCycleLR
-settings:
-  max_lr: 0.1
