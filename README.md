@@ -1,4 +1,4 @@
-# DL-train-pipeline
+# Pytorch-train-pipeline
 
 Pytorch pipeline able to train deep learning models in an efficient 
 and modular way.
