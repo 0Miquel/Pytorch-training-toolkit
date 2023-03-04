@@ -1,0 +1,3 @@
+model_name: Unet
+settings:
+  n_classes: 1

@@ -1,0 +1,8 @@
+defaults:
+  - dataset: flood_area_dataset
+  - loss: binary_cross_entropy
+  - model: unet
+  - optimizer: adam
+  - scheduler: onecycle
+#  - transforms: mytransforms
+  - trainer: segmentation_trainer

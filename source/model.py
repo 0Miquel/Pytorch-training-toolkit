@@ -1,5 +1,6 @@
 import torch.nn as nn
 from torchvision import models
+import segmentation_models_pytorch as smp
 from abc import ABC, abstractmethod
 
 
@@ -34,6 +35,21 @@ class MyModel(nn.Module, ABC):
     @abstractmethod
     def forward(self, x):
         pass
+
+
+class Unet(MyModel):
+    def __init__(self, settings):
+        super(Unet, self).__init__()
+        self.model = smp.Unet(
+            encoder_name="resnet34",  # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
+            encoder_weights="imagenet",  # use `imagenet` pre-trained weights for encoder initialization
+            in_channels=3,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+            classes=settings["n_classes"],  # model output channels (number of classes in your dataset)
+        )
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
 
 
 class Efficientnetb1(MyModel):

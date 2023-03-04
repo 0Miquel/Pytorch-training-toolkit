@@ -9,8 +9,8 @@ def get_logger(cfg, wandb_name):
 
 class Logger:
     def __init__(self, cfg, wandb_name):
+        self.project_name = wandb_name
         if cfg is not None:
-            self.project_name = wandb_name
             self.sweep = False
             self.cfg = OmegaConf.to_object(cfg)
             self.run = wandb.init(project=self.project_name, config=self.cfg)
@@ -18,11 +18,9 @@ class Logger:
             # If called by wandb.agent,
             # this config will be set by Sweep Controller
             self.sweep = True
-            self.run = wandb.init(config=cfg)
+            self.run = wandb.init(project=self.project_name, config=cfg)
             config = wandb.config
             self.cfg = nested_dict(config)
-            self.project_name = self.run.project
-
         self.logs = {}
 
     def add(self, metrics):

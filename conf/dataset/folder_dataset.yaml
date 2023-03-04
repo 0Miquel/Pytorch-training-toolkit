@@ -1,4 +1,5 @@
 dataset_name: FolderDataset
+validation: True  # indicates if there is a predefined validation set
 settings:
   batch_size: 16
   train_path: dataset/MIT_small_train_1/train

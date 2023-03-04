@@ -3,12 +3,15 @@ import wandb
 from source.utils.io import *
 import argparse
 import sys
+import functools
 
 
 def main(sweep_fname, sweep_count, wandb_pname):
     cfg_sweep = load_yaml_config(f"sweeps/{sweep_fname}")
     sweep_id = wandb.sweep(cfg_sweep, project=wandb_pname)
-    wandb.agent(sweep_id, train, count=sweep_count)
+
+    wandb_train = functools.partial(train, wandb_pname)
+    wandb.agent(sweep_id, wandb_train, count=sweep_count)
 
 
 if __name__ == "__main__":

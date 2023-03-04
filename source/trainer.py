@@ -6,12 +6,13 @@ from source.optimizer import *
 from source.scheduler import *
 from source.logger import *
 from source.utils.metrics import *
+from source.utils.plots import *
 import math
 import time
 from omegaconf import OmegaConf
 
 
-def train(cfg=None, wandb_name=None):
+def train(wandb_name=None, cfg=None):
     trainer = Trainer(cfg, wandb_name)
     trainer.fit()
 
@@ -19,7 +20,7 @@ def train(cfg=None, wandb_name=None):
 class Trainer:
     def __init__(self, config, wandb_name):
         self.log = False
-        if wandb_name is not None or config is None:
+        if wandb_name is not None:
             # if wandb project name is set or if config is none which means that we are executing a sweep
             self.log = True
             self.logger = get_logger(config, wandb_name)
@@ -45,7 +46,7 @@ class Trainer:
 
     def train_epoch(self, epoch):
         self.model.train()
-        exec_params = init_exec_params(self.metrics)
+        init_exec_params(self.metrics)
         # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
@@ -53,6 +54,7 @@ class Trainer:
             for inputs, targets in tepoch:
                 inputs = inputs.to(self.device)
                 targets = targets.to(self.device)
+
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
                 # forward
@@ -64,25 +66,18 @@ class Trainer:
                 self.optimizer.step()
                 if self.scheduler is not None:
                     self.scheduler.step()
-                # calculate epoch loss
-                exec_params["dataset_size"] += inputs.size(0)
-                exec_params["running_loss"] += loss.item() * inputs.size(0)
-                epoch_loss = exec_params["running_loss"] / exec_params["dataset_size"]
-                # compute metrics
-                metrics = compute_metrics(self.metrics, outputs, targets, exec_params)
-                # get current learning rate
-                current_lr = self.optimizer.param_groups[0]['lr']
-                # print statistics
-                metrics["loss"] = epoch_loss
-                metrics["lr"] = current_lr
+
+                # compute metrics for this epoch +  current lr and loss
+                metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
+            self.logger.add_img("Segmentation train result", plot_segmentation_batch(outputs, targets))
             self.logger.add({"train": metrics})
-        return epoch_loss
+        return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        exec_params = init_exec_params(self.metrics)
+        init_exec_params(self.metrics)
         # use tqdm to track progress
         with tqdm(self.val_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
@@ -90,22 +85,19 @@ class Trainer:
             for inputs, targets in tepoch:
                 inputs = inputs.to(self.device)
                 targets = targets.to(self.device)
+
                 # predict
                 outputs = self.model(inputs)
                 # loss
                 loss = self.loss(outputs, targets)
-                # calculate epoch loss
-                exec_params["dataset_size"] += inputs.size(0)
-                exec_params["running_loss"] += loss.item() * inputs.size(0)
-                epoch_loss = exec_params["running_loss"] / exec_params["dataset_size"]
-                # compute metrics
-                metrics = compute_metrics(self.metrics, outputs, targets, exec_params)
-                # print statistics
-                metrics["loss"] = epoch_loss
+
+                # compute metrics for this epoch +  current lr and loss
+                metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss)
                 tepoch.set_postfix(**metrics)
         if self.log:
+            self.logger.add_img("Segmentation val result", plot_segmentation_batch(outputs, targets))
             self.logger.add({"val": metrics})
-        return epoch_loss
+        return metrics["loss"]
 
     def fit(self):
         since = time.time()

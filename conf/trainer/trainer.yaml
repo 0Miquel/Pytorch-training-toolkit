@@ -1,5 +1,0 @@
-n_epochs: 10
-device: cuda
-model_path: models/first_model.pt  # path were the model will be saved
-metrics:  # list of metrics to be computed and recorded every epoch
-  - accuracy

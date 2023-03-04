@@ -1,0 +1,8 @@
+dataset_name: FloodAreaSegmentation
+validation: False  # indicates if there is a predefined validation set
+settings:
+  batch_size: 16
+  csv_file: dataset/flood_area-segmentation/metadata.csv
+  images_path: dataset/flood_area-segmentation/Image/
+  masks_path: dataset/flood_area-segmentation/Mask/
+  train_ratio: 0.7
