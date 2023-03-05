@@ -35,33 +35,45 @@ def get_dataloaders(config):
 
     try:
         if validation:
-            train_path = settings["train_path"]
-            val_path = settings["val_path"]
-            train_dataset = globals()[dataset_name](train_path, settings)
-            val_dataset = globals()[dataset_name](val_path, settings)
-            # generate reproducible validation set
-            val_indices = list(range(len(val_dataset)))
-            np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
-            val_dataset = Subset(val_dataset, val_indices)
-
-            train_dl = DataLoader(train_dataset, batch_size=settings["batch_size"], shuffle=True)
-            val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
+            train_dl, val_dl = get_predifined_split(dataset_name, settings)
         else:
-            train_ratio = settings["train_ratio"]
-            dataset = globals()[dataset_name](settings)
-            train_size = int(train_ratio * len(dataset))
-            train_sampler = SubsetRandomSampler(range(train_size))
-            # generate reproducible validation set
-            val_indices = list(range(train_size, len(dataset)))
-            np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
-            val_dataset = Subset(dataset, val_indices)
-
-            train_dl = DataLoader(dataset, batch_size=settings["batch_size"], sampler=train_sampler)
-            val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
+            train_dl, val_dl = get_random_split(dataset_name, settings)
     except KeyError:
         raise f"Dataset with name {dataset_name} not found"
 
     return {"train": train_dl, "val": val_dl}
+
+
+def get_predifined_split(dataset_name, settings):
+    train_path = settings["train_path"]
+    val_path = settings["val_path"]
+    train_dataset = globals()[dataset_name](train_path, settings)
+    val_dataset = globals()[dataset_name](val_path, settings)
+    # generate reproducible validation set
+    val_indices = list(range(len(val_dataset)))
+    np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
+    val_dataset = Subset(val_dataset, val_indices)
+
+    train_dl = DataLoader(train_dataset, batch_size=settings["train_batch_size"], shuffle=True)
+    val_dl = DataLoader(val_dataset, batch_size=settings["val_batch_size"], shuffle=False)
+
+    return train_dl, val_dl
+
+
+def get_random_split(dataset_name, settings):
+    train_ratio = settings["train_ratio"]
+    dataset = globals()[dataset_name](settings)
+    train_size = int(train_ratio * len(dataset))
+    train_sampler = SubsetRandomSampler(range(train_size))
+    # generate reproducible validation set
+    val_indices = list(range(train_size, len(dataset)))
+    np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
+    val_dataset = Subset(dataset, val_indices)
+
+    train_dl = DataLoader(dataset, batch_size=settings["train_batch_size"], sampler=train_sampler)
+    val_dl = DataLoader(val_dataset, batch_size=settings["val_batch_size"], shuffle=False)
+
+    return train_dl, val_dl
 
 
 class FolderDataset(Dataset):
