@@ -77,3 +77,19 @@ def segmentation_table(inputs, outputs, targets, labels):
         table.add_data(pred_mask_img, true_mask_img)
 
     return table
+
+
+def classificiation_table(inputs, outputs, targets, labels):
+    table = wandb.Table(columns=["Input", "Prediction", "Ground truth"])
+    for img, output, target in zip(inputs, outputs, targets):
+        img = img.permute((1, 2, 0)).cpu().detach().numpy().astype("uint8")
+        img = wandb.Image(img)
+        output_label = labels[torch.argmax(output).item()]
+        target_label = labels[torch.argmax(target).item()]
+
+        table.add_data(img, output_label, target_label)
+
+    return table
+
+
+

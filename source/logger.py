@@ -33,8 +33,8 @@ class Logger:
             table = segmentation_table(og_imgs, outputs, targets, self.labels)
             self.logs[phase+"_results"] = table
         elif self.task == "classification":
-            # TODO: add visualization for classification (input img / probabilities / gt / pred)
-            print("hi")
+            table = classificiation_table(og_imgs, outputs, targets, self.labels)
+            self.logs[phase+"_results"] = table
 
     def upload(self):
         wandb.log(self.logs)
