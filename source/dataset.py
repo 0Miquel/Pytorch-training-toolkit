@@ -19,6 +19,15 @@ resize_transform = A.Compose([
 ])
 
 
+# set random seed for numpy
+np.random.seed(42)
+
+# set random seed for PyTorch
+torch.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(42)
+
+
 def get_dataloaders(config):
     dataset_name = config["dataset_name"]
     settings = config["settings"]
@@ -30,6 +39,10 @@ def get_dataloaders(config):
             val_path = settings["val_path"]
             train_dataset = globals()[dataset_name](train_path, settings)
             val_dataset = globals()[dataset_name](val_path, settings)
+            # generate reproducible validation set
+            val_indices = list(range(len(val_dataset)))
+            np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
+            val_dataset = Subset(val_dataset, val_indices)
 
             train_dl = DataLoader(train_dataset, batch_size=settings["batch_size"], shuffle=True)
             val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
@@ -38,7 +51,10 @@ def get_dataloaders(config):
             dataset = globals()[dataset_name](settings)
             train_size = int(train_ratio * len(dataset))
             train_sampler = SubsetRandomSampler(range(train_size))
-            val_dataset = Subset(dataset, range(train_size, len(dataset)))
+            # generate reproducible validation set
+            val_indices = list(range(train_size, len(dataset)))
+            np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
+            val_dataset = Subset(dataset, val_indices)
 
             train_dl = DataLoader(dataset, batch_size=settings["batch_size"], sampler=train_sampler)
             val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
