@@ -44,7 +44,7 @@ def get_dataloaders(config):
     return {"train": train_dl, "val": val_dl}
 
 
-def get_predifined_split(dataset_name, settings):
+def get_predefined_split(dataset_name, settings):
     train_path = settings["train_path"]
     val_path = settings["val_path"]
     train_dataset = globals()[dataset_name](train_path, settings)
