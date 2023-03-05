@@ -35,7 +35,7 @@ def get_dataloaders(config):
 
     try:
         if validation:
-            train_dl, val_dl = get_predifined_split(dataset_name, settings)
+            train_dl, val_dl = get_predefined_split(dataset_name, settings)
         else:
             train_dl, val_dl = get_random_split(dataset_name, settings)
     except KeyError:
