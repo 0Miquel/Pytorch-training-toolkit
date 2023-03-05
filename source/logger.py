@@ -1,6 +1,7 @@
 import wandb
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
+from source.utils.plots import *
 
 
 def get_logger(cfg, wandb_name):
@@ -21,13 +22,19 @@ class Logger:
             self.run = wandb.init(project=self.project_name, config=cfg)
             config = wandb.config
             self.cfg = nested_dict(config)
+
+        self.labels = self.cfg["dataset"]["settings"]["labels"]
+        self.task = self.cfg["trainer"]["task"]
         self.logs = {}
 
-    def add(self, metrics):
-        self.logs.update(metrics)
-
-    def add_img(self, data_name, img):
-        self.logs[data_name] = wandb.Image(img)
+    def add(self, og_imgs, outputs, targets, metrics, phase):
+        self.logs[phase] = metrics
+        if self.task == "segmentation":
+            table = segmentation_table(og_imgs, outputs, targets, self.labels)
+            self.logs[phase+"_results"] = table
+        elif self.task == "classification":
+            # TODO: add visualization for classification (input img / probabilities / gt / pred)
+            print("hi")
 
     def upload(self):
         wandb.log(self.logs)

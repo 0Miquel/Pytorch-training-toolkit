@@ -10,7 +10,7 @@ def main(cfg, wandb_pname):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_name", default="config_segmentation")
+    parser.add_argument("--config_name", default="config_classification")
     parser.add_argument("--wandb_name", default="test")
     args = parser.parse_args(sys.argv[1:])
     config_name = args.config_name

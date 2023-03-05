@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler
+from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, Subset
 import glob
 import cv2
 import torch
@@ -10,6 +10,11 @@ from albumentations.pytorch import ToTensorV2
 default_transform = A.Compose([
     A.Resize(224, 224),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    ToTensorV2(),
+])
+
+resize_transform = A.Compose([
+    A.Resize(224, 224),
     ToTensorV2(),
 ])
 
@@ -27,16 +32,16 @@ def get_dataloaders(config):
             val_dataset = globals()[dataset_name](val_path, settings)
 
             train_dl = DataLoader(train_dataset, batch_size=settings["batch_size"], shuffle=True)
-            val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=True)
+            val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
         else:
             train_ratio = settings["train_ratio"]
             dataset = globals()[dataset_name](settings)
             train_size = int(train_ratio * len(dataset))
             train_sampler = SubsetRandomSampler(range(train_size))
-            val_sampler = SubsetRandomSampler(range(train_size, len(dataset)))
+            val_dataset = Subset(dataset, range(train_size, len(dataset)))
 
             train_dl = DataLoader(dataset, batch_size=settings["batch_size"], sampler=train_sampler)
-            val_dl = DataLoader(dataset, batch_size=settings["batch_size"], sampler=val_sampler)
+            val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
     except KeyError:
         raise f"Dataset with name {dataset_name} not found"
 
@@ -55,12 +60,10 @@ class FolderDataset(Dataset):
         self.img_paths = [path.replace("\\", "/") for path in self.img_paths]  # for Windows
         self.labels = [path.split("/")[-2] for path in self.img_paths]
 
-        self.labelstoid = {path.split("/")[-2]: 0 for path in self.img_paths}
-        for i, j in enumerate(self.labelstoid.keys()):
-            self.labelstoid[j] = i
-        self.idtolabels = dict((v, k) for k, v in self.labelstoid.items())
+        self.id2labels = settings["labels"]
+        self.labels2id = dict((v, k) for k, v in self.id2labels.items())
 
-        self.num_classes = len(self.labelstoid)
+        self.num_classes = len(self.labels2id)
         self.transforms = transforms
 
     def __len__(self):
@@ -71,13 +74,15 @@ class FolderDataset(Dataset):
         img_path = self.img_paths[idx]
         img = cv2.imread(img_path)[:, :, ::-1]  # convert it to rgb
         img = img.astype('float32')
-        img = self.transforms(image=img)["image"]
+        transformed_img = self.transforms(image=img)["image"]
         # process label
         label = self.labels[idx]
-        label_id = self.labelstoid[label]
+        label_id = self.labels2id[label]
         encoded_id = np.zeros(self.num_classes, dtype='float32')
         encoded_id[label_id] = 1
-        return img, torch.tensor(encoded_id)
+
+        og_img = resize_transform(image=img)["image"]
+        return transformed_img, torch.tensor(encoded_id), og_img
 
 
 class FolderDataset2(Dataset):
@@ -92,12 +97,10 @@ class FolderDataset2(Dataset):
         self.img_paths = [path.replace("\\", "/") for path in self.img_paths]  # for Windows
         self.labels = [path.split("/")[-2] for path in self.img_paths]
 
-        self.labelstoid = {path.split("/")[-2]: 0 for path in self.img_paths}
-        for i, j in enumerate(self.labelstoid.keys()):
-            self.labelstoid[j] = i
-        self.idtolabels = dict((v, k) for k, v in self.labelstoid.items())
+        self.id2labels = settings["labels"]
+        self.labels2id = dict((v, k) for k, v in self.id2labels.items())
 
-        self.num_classes = len(self.labelstoid)
+        self.num_classes = len(self.labels2id)
         self.transforms = transforms
 
     def __len__(self):
@@ -108,13 +111,15 @@ class FolderDataset2(Dataset):
         img_path = self.img_paths[idx]
         img = cv2.imread(img_path)[:, :, ::-1]  # convert it to rgb
         img = img.astype('float32')
-        img = self.transforms(image=img)["image"]
+        transformed_img = self.transforms(image=img)["image"]
         # process label
         label = self.labels[idx]
-        label_id = self.labelstoid[label]
+        label_id = self.labels2id[label]
         encoded_id = np.zeros(self.num_classes, dtype='float32')
         encoded_id[label_id] = 1
-        return img, torch.tensor(encoded_id)
+
+        og_img = resize_transform(image=img)["image"]
+        return transformed_img, torch.tensor(encoded_id), og_img
 
 
 class FloodAreaSegmentation(Dataset):
@@ -152,9 +157,11 @@ class FloodAreaSegmentation(Dataset):
         mask = mask.astype('float32')
 
         transformed = self.transforms(image=img, mask=mask)
-        img = transformed["image"]
+        transformed_img = transformed["image"]
         mask = transformed["mask"]
         if len(mask.shape) == 2:
             mask = mask[None, ...]
 
-        return img, mask
+        og_img = resize_transform(image=img)["image"]
+
+        return transformed_img, mask, og_img
