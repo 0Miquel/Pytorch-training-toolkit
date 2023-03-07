@@ -1,0 +1,7 @@
+model_name: CustomResnet
+settings:
+  num_classes: 8
+  num_layers: 10
+  img_channels: 3
+  in_channels: 8
+  dropout_rate: 0.3

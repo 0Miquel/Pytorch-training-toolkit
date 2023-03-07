@@ -5,4 +5,4 @@ settings:
   train_batch_size: 16
   train_path: dataset/MIT_small_train_1/train
   val_path: dataset/MIT_small_train_1/test
-  labels: {0: "coast", 1: "forest", 2: "highway", 3: "inside_city", 4: "mountain", 5: "Opencountry", 6: "street", 7: "tallbuilding"}
+  labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]

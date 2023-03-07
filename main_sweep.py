@@ -1,6 +1,6 @@
 from source.trainer import train
 import wandb
-from source.utils.io import *
+from source.utils import load_yaml_config
 import argparse
 import sys
 import functools
@@ -16,7 +16,7 @@ def main(sweep_fname, sweep_count, wandb_pname):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sweep", default="sweep.yaml")
+    parser.add_argument("--sweep", default="sweep_classification.yaml")
     parser.add_argument("--n_runs", default=5, type=int)
     parser.add_argument("--wandb_name", default="test")
     args = parser.parse_args(sys.argv[1:])

@@ -7,4 +7,4 @@ settings:
   images_path: dataset/flood_area-segmentation/Image/
   masks_path: dataset/flood_area-segmentation/Mask/
   train_ratio: 0.7
-  labels: {0: "nowater", 1: "water"}
+  labels: ["nowater", "water"]

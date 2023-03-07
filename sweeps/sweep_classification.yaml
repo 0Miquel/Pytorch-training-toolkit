@@ -1,0 +1,60 @@
+method: random
+metric:
+  goal: minimize
+  name: val.loss
+
+parameters:
+  # OPTIMIZER
+  optimizer.optimizer_name:
+    value: Adam
+  optimizer.settings.weight_decay:
+    max: 0.002
+    min: 0.0005
+    distribution: uniform
+  optimizer.settings.lr:
+    max: 0.002
+    min: 0.0005
+    distribution: uniform
+
+  # TRAINER
+  trainer.metrics:
+    value: ["accuracy"]
+  trainer.model_path:
+    value: models/first_model.pt
+  trainer.n_epochs:
+    value: 1
+  trainer.device:
+    value: cuda
+  trainer.task:
+    value: classification
+
+  # DATASET
+  dataset.dataset_name:
+    value: FolderDataset
+  dataset.validation:
+    value: True
+  dataset.settings.train_path:
+    value: dataset/MIT_small_train_1/train
+  dataset.settings.val_path:
+    value: dataset/MIT_small_train_1/test
+  dataset.settings.val_batch_size:
+    value: 16
+  dataset.settings.train_batch_size:
+    value: 16
+  dataset.settings.labels:
+    value: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]
+
+  model.model_name:
+    value: Resnet50
+  model.settings.pretrained:
+    value: True
+  model.settings.n_classes:
+    value: 8
+  model.settings.fine_tune:
+    values:
+      - True
+      - False
+    distribution: categorical
+
+  loss.loss_name:
+    value: CrossEntropyLoss

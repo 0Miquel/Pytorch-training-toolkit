@@ -1,15 +1,14 @@
 from tqdm import tqdm
-from source.dataset import *
-from source.loss import *
-from source.model import *
-from source.optimizer import *
-from source.scheduler import *
-from source.logger import *
-from source.utils.metrics import *
-from source.utils.plots import *
+from source.datasets import get_dataloaders
+from source.losses import get_loss
+from source.models import get_model
+from source.optimizers import get_optimizer
+from source.schedulers import get_scheduler
+from source.utils import *
 import math
 import time
 from omegaconf import OmegaConf
+from torchsummary import summary
 
 
 def train(wandb_name=None, cfg=None):
@@ -41,6 +40,7 @@ class Trainer:
         self.loss = get_loss(config['loss'])
         model = get_model(config['model'])
         self.model = model.to(self.device)
+        # summary(self.model, input_size=(3, 224, 224), device=self.device)
         self.optimizer = get_optimizer(config['optimizer'], self.model)
         self.scheduler = get_scheduler(config['scheduler'], self.optimizer, len(self.train_dl),
                                        n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
@@ -76,20 +76,21 @@ class Trainer:
     def val_epoch(self, epoch):
         self.model.eval()
         init_exec_params(self.metrics)
-        # use tqdm to track progress
-        with tqdm(self.val_dl, unit="batch") as tepoch:
-            tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
-            # Iterate over data.
-            for inputs, targets, og_imgs in tepoch:
-                inputs = inputs.to(self.device)
-                targets = targets.to(self.device)
-                # predict
-                outputs = self.model(inputs)
-                # loss
-                loss = self.loss(outputs, targets)
-                # compute metrics for this epoch +  current lr and loss
-                metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss)
-                tepoch.set_postfix(**metrics)
+        with torch.no_grad():
+            # use tqdm to track progress
+            with tqdm(self.val_dl, unit="batch") as tepoch:
+                tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
+                # Iterate over data.
+                for inputs, targets, og_imgs in tepoch:
+                    inputs = inputs.to(self.device)
+                    targets = targets.to(self.device)
+                    # predict
+                    outputs = self.model(inputs)
+                    # loss
+                    loss = self.loss(outputs, targets)
+                    # compute metrics for this epoch +  current lr and loss
+                    metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss)
+                    tepoch.set_postfix(**metrics)
         if self.log:
             self.logger.add(og_imgs, outputs, targets, metrics, "val")
         return metrics["loss"]
