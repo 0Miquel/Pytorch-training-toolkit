@@ -2,6 +2,7 @@ import wandb
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 from source.utils import *
+from source.utils import segmentation_table
 
 
 def get_logger(cfg, wandb_name):
@@ -28,14 +29,18 @@ class Logger:
         self.task = self.cfg["trainer"]["task"]
         self.logs = {}
 
-    def add(self, og_imgs, outputs, targets, metrics, phase):
-        self.logs[phase] = metrics
+    def add(self, og_imgs, outputs, targets, metrics, phase, exec_metrics):
+        for metric_name, metric_value in metrics.items():
+            self.logs[phase+"/"+metric_name] = metric_value
+        # self.logs[phase] = metrics
         if self.task == "segmentation" and not self.sweep:
             table = segmentation_table(og_imgs, outputs, targets, self.labels)
-            self.logs[phase+"_results"] = table
+            self.logs[phase+"/segm_results"] = table
         elif self.task == "classification" and not self.sweep:
             table = classificiation_table(og_imgs, outputs, targets, self.labels)
-            self.logs[phase+"_results"] = table
+            self.logs[phase+"/class_results"] = table
+            conf_matrix = confussion_matrix_wandb(exec_metrics["predictions"], exec_metrics["gt"], self.labels)
+            self.logs[phase + "/conf_matrix"] = conf_matrix
 
     def upload(self):
         wandb.log(self.logs)

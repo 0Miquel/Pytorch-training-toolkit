@@ -34,7 +34,7 @@ class Trainer:
         self.model_path = trainer_config["model_path"]
         self.task = trainer_config["task"]
 
-        dataloaders = get_dataloaders(config['dataset'])
+        dataloaders = get_dataloaders(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
         self.val_dl = dataloaders["val"]
         self.loss = get_loss(config['loss'])
@@ -47,7 +47,7 @@ class Trainer:
 
     def train_epoch(self, epoch):
         self.model.train()
-        init_exec_params(self.metrics)
+        exec_metrics = init_exec_params(self.metrics)
         # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
@@ -67,15 +67,15 @@ class Trainer:
                 if self.scheduler is not None:
                     self.scheduler.step()
                 # compute metrics for this epoch +  current lr and loss
-                metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss, self.optimizer)
+                metrics, exec_metrics = compute_metrics(exec_metrics, self.metrics, outputs, targets, loss, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add(og_imgs, outputs, targets, metrics, "train")
+            self.logger.add(og_imgs, outputs, targets, metrics, "train", exec_metrics)
         return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        init_exec_params(self.metrics)
+        exec_metrics = init_exec_params(self.metrics)
         with torch.no_grad():
             # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -89,10 +89,10 @@ class Trainer:
                     # loss
                     loss = self.loss(outputs, targets)
                     # compute metrics for this epoch +  current lr and loss
-                    metrics = compute_metrics(self.metrics, outputs, targets, inputs, loss)
+                    metrics, exec_metrics = compute_metrics(exec_metrics, self.metrics, outputs, targets, loss)
                     tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add(og_imgs, outputs, targets, metrics, "val")
+            self.logger.add(og_imgs, outputs, targets, metrics, "val", exec_metrics)
         return metrics["loss"]
 
     def fit(self):

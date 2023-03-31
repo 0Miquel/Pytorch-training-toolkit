@@ -1,8 +1,8 @@
 dataset_name: FolderDataset
 validation: True  # indicates if there is a predefined validation set
 settings:
-  val_batch_size: 16
+  val_batch_size: 32
   train_batch_size: 16
-  train_path: dataset/MIT_small_train_1/train
-  val_path: dataset/MIT_small_train_1/test
+  train_path: dataset/MIT_split/train
+  val_path: dataset/MIT_split/test
   labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]

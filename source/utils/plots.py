@@ -77,4 +77,9 @@ def classificiation_table(inputs, outputs, targets, labels):
     return table
 
 
+def confussion_matrix_wandb(predictions, gt, labels):
+    conf_matrix = wandb.plot.confusion_matrix(probs=None,
+                                              y_true=gt, preds=predictions,
+                                              class_names=labels)
+    return conf_matrix
 

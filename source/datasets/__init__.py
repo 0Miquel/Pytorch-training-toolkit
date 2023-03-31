@@ -5,6 +5,9 @@ from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, Subset
 import torch
 import numpy as np
 
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
 
 # set random seed for numpy
 np.random.seed(42)
@@ -15,27 +18,40 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(42)
 
 
-def get_dataloaders(config):
-    dataset_name = config["dataset_name"]
-    settings = config["settings"]
-    validation = config["validation"]
+def get_dataloaders(config_dataset, config_transforms):
+    dataset_name = config_dataset["dataset_name"]
+    settings = config_dataset["settings"]
+    validation = config_dataset["validation"]
+    transforms = get_transforms(config_transforms)
 
     try:
         if validation:
-            train_dl, val_dl = get_predefined_split(dataset_name, settings)
+            train_dl, val_dl = get_predefined_split(dataset_name, settings, transforms)
         else:
-            train_dl, val_dl = get_random_split(dataset_name, settings)
+            train_dl, val_dl = get_random_split(dataset_name, settings, transforms)
     except KeyError:
         raise f"Dataset with name {dataset_name} not found"
 
     return {"train": train_dl, "val": val_dl}
 
 
-def get_predefined_split(dataset_name, settings):
+def get_transforms(config_transforms):
+    train_transforms = get_albumentation_transforms(config_transforms["train"])
+    val_transforms = get_albumentation_transforms(config_transforms["val"])
+    transforms = {"train": train_transforms, "val": val_transforms}
+    return transforms
+
+
+def get_albumentation_transforms(transforms_dict):
+    transform = A.Compose([getattr(A, key)(**value) for key, value in transforms_dict.items()] + [ToTensorV2()])
+    return transform
+
+
+def get_predefined_split(dataset_name, settings, transforms):
     train_path = settings["train_path"]
     val_path = settings["val_path"]
-    train_dataset = globals()[dataset_name](train_path, settings)
-    val_dataset = globals()[dataset_name](val_path, settings)
+    train_dataset = globals()[dataset_name](train_path, settings, transforms["train"])
+    val_dataset = globals()[dataset_name](val_path, settings, transforms["val"])
     # pre-shuffle validation set, it won't be shuffled in training/eval phase
     val_indices = list(range(len(val_dataset)))
     np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
@@ -47,7 +63,7 @@ def get_predefined_split(dataset_name, settings):
     return train_dl, val_dl
 
 
-def get_random_split(dataset_name, settings):
+def get_random_split(dataset_name, settings, transforms):
     train_ratio = settings["train_ratio"]
     dataset = globals()[dataset_name](settings)
     train_size = int(train_ratio * len(dataset))
