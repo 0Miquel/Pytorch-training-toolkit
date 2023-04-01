@@ -1,6 +1,6 @@
 # Pytorch-train-pipeline
 
-Modular Pytorch pipeline for image classification and semantic segmentation.
+Modular Pytorch pipeline.
 
 This pipeline integrates WandB, an experiment tracking tool for 
 machine learning, and Hydra, a framework that simplifies the development
