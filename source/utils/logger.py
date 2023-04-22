@@ -26,21 +26,24 @@ class Logger:
 
         self.labels = self.cfg["dataset"]["settings"]["labels"]
         self.labels = {i: label for i, label in enumerate(self.labels)}
-        self.task = self.cfg["trainer"]["task"]
         self.logs = {}
 
-    def add(self, og_imgs, outputs, targets, metrics, phase, exec_metrics):
+    # def add(self, og_imgs, outputs, targets, metrics, phase, exec_metrics):
+    #     for metric_name, metric_value in metrics.items():
+    #         self.logs[phase+"/"+metric_name] = metric_value
+    #     # self.logs[phase] = metrics
+    #     if self.task == "segmentation" and not self.sweep:
+    #         table = segmentation_table(og_imgs, outputs, targets, self.labels)
+    #         self.logs[phase+"/segm_results"] = table
+    #     elif self.task == "classification" and not self.sweep:
+    #         table = classificiation_table(og_imgs, outputs, targets, self.labels)
+    #         self.logs[phase+"/class_results"] = table
+    #         conf_matrix = confussion_matrix_wandb(exec_metrics["predictions"], exec_metrics["gt"], self.labels)
+    #         self.logs[phase + "/conf_matrix"] = conf_matrix
+
+    def add(self, metrics, phase):
         for metric_name, metric_value in metrics.items():
             self.logs[phase+"/"+metric_name] = metric_value
-        # self.logs[phase] = metrics
-        if self.task == "segmentation" and not self.sweep:
-            table = segmentation_table(og_imgs, outputs, targets, self.labels)
-            self.logs[phase+"/segm_results"] = table
-        elif self.task == "classification" and not self.sweep:
-            table = classificiation_table(og_imgs, outputs, targets, self.labels)
-            self.logs[phase+"/class_results"] = table
-            conf_matrix = confussion_matrix_wandb(exec_metrics["predictions"], exec_metrics["gt"], self.labels)
-            self.logs[phase + "/conf_matrix"] = conf_matrix
 
     def upload(self):
         wandb.log(self.logs)

@@ -5,8 +5,6 @@ from source.models import get_model
 from source.optimizers import get_optimizer
 from source.schedulers import get_scheduler
 from source.utils import *
-import math
-import time
 from .base_trainer import BaseTrainer
 
 
@@ -16,11 +14,9 @@ class ClassificationTrainer(BaseTrainer):
         config = self.config
 
         trainer_config = config["trainer"]
-        self.metrics = trainer_config["metrics"]
         self.n_epochs = trainer_config["n_epochs"]
         self.device = trainer_config["device"]
         self.model_path = trainer_config["model_path"]
-        self.task = trainer_config["task"]
 
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
@@ -35,12 +31,12 @@ class ClassificationTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         self.model.train()
-        exec_metrics = init_exec_params(self.metrics)
+        total_metrics = init_classification_metrics()
         # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
             # Iterate over data.
-            for inputs, targets, og_imgs in tepoch:
+            for step, (inputs, targets, og_imgs) in enumerate(tepoch):
                 inputs = inputs.to(self.device)
                 targets = targets.to(self.device)
                 # zero the parameter gradients
@@ -55,30 +51,30 @@ class ClassificationTrainer(BaseTrainer):
                 if self.scheduler is not None:
                     self.scheduler.step()
                 # compute metrics for this epoch +  current lr and loss
-                metrics, exec_metrics = compute_metrics(exec_metrics, self.metrics, outputs, targets, loss, self.optimizer)
+                metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step+1, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add(og_imgs, outputs, targets, metrics, "train", exec_metrics)
+            self.logger.add(metrics, "train")
         return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        exec_metrics = init_exec_params(self.metrics)
+        total_metrics = init_classification_metrics()
         with torch.no_grad():
             # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
                 tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
                 # Iterate over data.
-                for inputs, targets, og_imgs in tepoch:
+                for step, (inputs, targets, og_imgs) in enumerate(tepoch):
                     inputs = inputs.to(self.device)
                     targets = targets.to(self.device)
                     # predict
                     outputs = self.model(inputs)
                     # loss
                     loss = self.loss(outputs, targets)
-                    # compute metrics for this epoch +  current lr and loss
-                    metrics, exec_metrics = compute_metrics(exec_metrics, self.metrics, outputs, targets, loss)
+                    # compute metrics for this epoch and loss
+                    metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step + 1)
                     tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add(og_imgs, outputs, targets, metrics, "val", exec_metrics)
+            self.logger.add(metrics, "val")
         return metrics["loss"]

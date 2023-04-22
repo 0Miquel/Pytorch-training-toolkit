@@ -1,6 +1,4 @@
-trainer_name: ClassificationTrainer
+trainer_name: SemSegmentationTrainer
 n_epochs: 10
 device: cuda
 model_path: models/segmentation_model.pt  # path were the model will be saved
-metrics:  ["dice", "iou"]  # list of metrics to be computed and recorded every epoch
-task: segmentation

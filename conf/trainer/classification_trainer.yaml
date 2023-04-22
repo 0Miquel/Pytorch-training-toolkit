@@ -2,5 +2,3 @@ trainer_name: ClassificationTrainer
 n_epochs: 50
 device: cuda
 model_path: models/resnet_model.pt  # path were the model will be saved
-metrics: ["accuracy"]  # list of metrics to be computed and recorded every epoch
-task: classification

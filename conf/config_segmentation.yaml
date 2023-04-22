@@ -4,5 +4,5 @@ defaults:
   - model: unet
   - optimizer: adam
   - scheduler: onecycle
-#  - transforms: mytransforms
+  - transforms: mytransforms
   - trainer: segmentation_trainer

@@ -49,8 +49,8 @@ class TripletMITDataset(Dataset):
             positive_label = self.labels[positive_idx]
             if positive_idx != idx and positive_label == anchor_label:
                 positive_img_path = self.img_paths[positive_idx]
-                postiive_img = cv2.imread(positive_img_path)[:, :, ::-1]
-                transformed_positive = self.transforms(image=postiive_img)["image"]
+                positive_img = cv2.imread(positive_img_path)[:, :, ::-1]
+                transformed_positive = self.transforms(image=positive_img)["image"]
                 break
         # GET NEGATIVE IMG
         while True:

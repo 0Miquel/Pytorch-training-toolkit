@@ -8,7 +8,7 @@ from source.utils import *
 from .base_trainer import BaseTrainer
 
 
-class TripletTrainer(BaseTrainer):
+class SemSegmentationTrainer(BaseTrainer):
     def __init__(self, config, wandb_name):
         super().__init__(config, wandb_name)
         config = self.config
@@ -24,57 +24,57 @@ class TripletTrainer(BaseTrainer):
         self.loss = get_loss(config['loss'])
         model = get_model(config['model'])
         self.model = model.to(self.device)
-
+        # summary(self.model, input_size=(3, 224, 224), device=self.device)
         self.optimizer = get_optimizer(config['optimizer'], self.model)
         self.scheduler = get_scheduler(config['scheduler'], self.optimizer, len(self.train_dl),
                                        n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
 
     def train_epoch(self, epoch):
         self.model.train()
-        total_metrics = init_metric_learning_metrics()
+        total_metrics = init_sem_segmentation_metrics()
+        # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
-            for step, (im0, im1, im2) in enumerate(tepoch):
-                im0 = im0.to(self.device)
-                im1 = im1.to(self.device)
-                im2 = im2.to(self.device)
+            # Iterate over data.
+            for step, (inputs, targets, og_imgs) in enumerate(tepoch):
+                inputs = inputs.to(self.device)
+                targets = targets.to(self.device)
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
                 # forward
-                feat_im0, feat_im1, feat_im2 = self.model(im0, im1, im2)
+                outputs = self.model(inputs)
                 # loss
-                loss = self.loss(feat_im0, feat_im1, feat_im2)
+                loss = self.loss(outputs, targets)
                 # backward
                 loss.backward()
                 self.optimizer.step()
                 if self.scheduler is not None:
                     self.scheduler.step()
                 # compute metrics for this epoch +  current lr and loss
-                metrics = compute_metric_learning_metrics(loss, total_metrics, step + 1, self.optimizer)
+                metrics = compute_sem_segmentation_metrics(loss, outputs, targets, total_metrics, step+1, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
             self.logger.add(metrics, "train")
-
         return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        total_metrics = init_metric_learning_metrics()
+        total_metrics = init_sem_segmentation_metrics()
         with torch.no_grad():
+            # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
                 tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
-                for step, (im0, im1, im2) in enumerate(tepoch):
-                    im0 = im0.to(self.device)
-                    im1 = im1.to(self.device)
-                    im2 = im2.to(self.device)
-                    # forward
-                    feat_im0, feat_im1, feat_im2 = self.model(im0, im1, im2)
+                # Iterate over data.
+                for step, (inputs, targets, og_imgs) in enumerate(tepoch):
+                    inputs = inputs.to(self.device)
+                    targets = targets.to(self.device)
+                    # predict
+                    outputs = self.model(inputs)
                     # loss
-                    loss = self.loss(feat_im0, feat_im1, feat_im2)
+                    loss = self.loss(outputs, targets)
                     # compute metrics for this epoch and loss
-                    metrics = compute_metric_learning_metrics(loss, total_metrics, step + 1)
+                    metrics = compute_sem_segmentation_metrics(loss, outputs, targets, total_metrics, step + 1)
                     tepoch.set_postfix(**metrics)
         if self.log:
             self.logger.add(metrics, "val")
-
         return metrics["loss"]
