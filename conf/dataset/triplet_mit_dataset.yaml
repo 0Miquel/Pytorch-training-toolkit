@@ -1,0 +1,8 @@
+dataset_name: TripletMITDataset
+validation: True  # indicates if there is a predefined validation set
+settings:
+  val_batch_size: 8
+  train_batch_size: 8
+  train_path: dataset/MIT_split/train
+  val_path: dataset/MIT_split/test
+  labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]

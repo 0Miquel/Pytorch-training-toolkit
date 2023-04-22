@@ -1,0 +1,8 @@
+defaults:
+  - dataset: triplet_mit_dataset
+  - loss: triplet_margin_loss
+  - model: triplet
+  - optimizer: adam
+  - scheduler: onecycle
+  - transforms: mytransforms
+  - trainer: triplet_trainer

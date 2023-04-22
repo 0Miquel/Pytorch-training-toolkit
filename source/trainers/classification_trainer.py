@@ -82,20 +82,3 @@ class ClassificationTrainer(BaseTrainer):
         if self.log:
             self.logger.add(og_imgs, outputs, targets, metrics, "val", exec_metrics)
         return metrics["loss"]
-
-    # def fit(self):
-    #     since = time.time()
-    #     best_loss = math.inf
-    #     for epoch in range(self.n_epochs):
-    #         self.train_epoch(epoch)
-    #         val_loss = self.val_epoch(epoch)
-    #         if val_loss < best_loss:
-    #             best_loss = val_loss
-    #             torch.save(self.model.state_dict(), self.model_path)
-    #         if self.log:
-    #             self.logger.upload()
-    #     time_elapsed = time.time() - since
-    #     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    #     if self.log:
-    #         self.logger.log_model(self.model_path)
-    #         self.logger.finish()
