@@ -1,0 +1,13 @@
+numpy
+opencv-python
+albumentations
+wandb
+hydra-core
+matplotlib
+seaborn
+tqdm
+segmentation-models-pytorch
+torch
+torchvision
+torchaudio
+

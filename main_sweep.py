@@ -1,4 +1,4 @@
-from source.trainer import train
+from source.trainers.classification_trainer import train
 import wandb
 from source.utils import load_yaml_config
 import argparse

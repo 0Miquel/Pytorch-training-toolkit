@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, Subset
+from torch.utils.data import Dataset
 import glob
 import cv2
 import torch
@@ -38,7 +38,7 @@ class FolderDataset(Dataset):
         self.transforms = transforms
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.img_paths)
 
     def __getitem__(self, idx):
         # process image
@@ -54,3 +54,37 @@ class FolderDataset(Dataset):
 
         og_img = resize_transform(image=img)["image"]
         return transformed_img, torch.tensor(encoded_id), og_img
+
+
+class FolderDataset2(Dataset):
+    """
+    Class for the typical Folder Dataset, where a folder consists of multiple subfolders for every class which
+    contains the class images. It does not support any other format like csv file.
+    """
+    def __init__(self, path, settings, transforms=default_transform):
+        if path[-1] != "/":
+            path = path + "/"
+        self.img_paths = glob.glob(path + "*/*")
+        self.img_paths = [path.replace("\\", "/") for path in self.img_paths]  # for Windows
+        self.labels = [path.split("/")[-2] for path in self.img_paths]
+
+        self.id2labels = {i: label for i, label in enumerate(settings["labels"])}
+        self.labels2id = dict((v, k) for k, v in self.id2labels.items())
+
+        self.num_classes = len(self.labels2id)
+        self.transforms = transforms
+
+    def __len__(self):
+        return len(self.img_paths)
+
+    def __getitem__(self, idx):
+        # process image
+        img_path = self.img_paths[idx]
+        img = cv2.imread(img_path)[:, :, ::-1]  # convert it to rgb
+        img = img.astype('float32')
+        transformed_img = self.transforms(image=img)["image"]
+        # process label
+        label = self.labels[idx]
+        label_id = self.labels2id[label]
+
+        return transformed_img, torch.tensor(label_id)

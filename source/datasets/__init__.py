@@ -1,5 +1,6 @@
-from .folder_dataset import FolderDataset
+from .folder_dataset import FolderDataset, FolderDataset2
 from .flood_dataset import FloodAreaSegmentation
+from .siamese_dataset import SiameseMITDataset
 
 from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, Subset
 import torch

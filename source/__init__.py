@@ -1,6 +1,6 @@
 """Top-level package"""
 
-from .trainer import train
+from .trainers import train
 
 
 __author__ = """Miquel Romero Blanch"""
