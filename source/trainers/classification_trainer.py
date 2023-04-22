@@ -54,6 +54,7 @@ class ClassificationTrainer(BaseTrainer):
                 metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step+1, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
+            self.logger.add_classification_table(og_imgs, outputs, targets, "train")
             self.logger.add(metrics, "train")
         return metrics["loss"]
 
@@ -76,5 +77,6 @@ class ClassificationTrainer(BaseTrainer):
                     metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step + 1)
                     tepoch.set_postfix(**metrics)
         if self.log:
+            self.logger.add_classification_table(og_imgs, outputs, targets, "val")
             self.logger.add(metrics, "val")
         return metrics["loss"]

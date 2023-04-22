@@ -41,6 +41,14 @@ class Logger:
     #         conf_matrix = confussion_matrix_wandb(exec_metrics["predictions"], exec_metrics["gt"], self.labels)
     #         self.logs[phase + "/conf_matrix"] = conf_matrix
 
+    def add_classification_table(self, og_imgs, outputs, targets, phase):
+        table = classificiation_table(og_imgs, outputs, targets, self.labels)
+        self.logs[phase+"/class_results"] = table
+
+    def add_segmentation_table(self, og_imgs, outputs, targets, phase):
+        table = segmentation_table(og_imgs, outputs, targets, self.labels)
+        self.logs[phase+"/segm_results"] = table
+
     def add(self, metrics, phase):
         for metric_name, metric_value in metrics.items():
             self.logs[phase+"/"+metric_name] = metric_value
