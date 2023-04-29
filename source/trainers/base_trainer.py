@@ -1,15 +1,16 @@
 from source.utils import *
+from source.datasets import get_dataloaders
+from source.losses import get_loss
+from source.models import get_model
+from source.optimizers import get_optimizer
+from source.schedulers import get_scheduler
+
 import math
 import os
 import time
 from omegaconf import OmegaConf
 from abc import ABC, abstractmethod
-
-
-def save_model(model, model_path):
-    for path_dir in model_path.split("/")[:-1]:
-        os.makedirs(path_dir, exist_ok=True)
-    torch.save(model.state_dict(), model_path)
+import torch
 
 
 class BaseTrainer(ABC):
@@ -22,6 +23,25 @@ class BaseTrainer(ABC):
             self.config = self.logger.cfg
         else:
             self.config = OmegaConf.to_object(config)
+
+        config = self.config
+        trainer_config = config["trainer"]
+        self.n_epochs = trainer_config["n_epochs"]
+        self.device = trainer_config["device"]
+        self.model_path = trainer_config["model_path"]
+        # DATASET
+        dataloaders = get_dataloaders(config['dataset'], config["transforms"])
+        self.train_dl = dataloaders["train"]
+        self.val_dl = dataloaders["val"]
+        # LOSS
+        self.loss = get_loss(config['loss'])
+        # MODEL
+        model = get_model(config['model']).to(self.device)
+        self.model = torch.compile(model)
+        # OPTIMIZER
+        self.optimizer = get_optimizer(config['optimizer'], self.model)
+        self.scheduler = get_scheduler(config['scheduler'], self.optimizer, len(self.train_dl),
+                                       n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
 
     @abstractmethod
     def train_epoch(self, epoch):
@@ -39,7 +59,7 @@ class BaseTrainer(ABC):
             val_loss = self.val_epoch(epoch)
             if val_loss < best_loss:
                 best_loss = val_loss
-                save_model(self.model, self.model_path)
+                self.save_model(self.model, self.model_path)
             if self.log:
                 self.logger.upload()
         time_elapsed = time.time() - since
@@ -47,3 +67,9 @@ class BaseTrainer(ABC):
         if self.log:
             self.logger.log_model(self.model_path)
             self.logger.finish()
+
+    @staticmethod
+    def save_model(model, model_path):
+        for path_dir in model_path.split("/")[:-1]:
+            os.makedirs(path_dir, exist_ok=True)
+        torch.save(model.state_dict(), model_path)
