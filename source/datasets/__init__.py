@@ -1,4 +1,4 @@
-from .folder_dataset import FolderDataset, FolderDataset2
+from .folder_dataset import FolderDataset
 from .flood_dataset import FloodAreaSegmentation
 from .triplet_dataset import TripletMITDataset
 

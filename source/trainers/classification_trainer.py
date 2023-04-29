@@ -14,8 +14,9 @@ class ClassificationTrainer(BaseTrainer):
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
             # Iterate over data.
-            for step, (inputs, targets, og_imgs) in enumerate(tepoch):
+            for step, (inputs, targets) in enumerate(tepoch):
                 inputs = inputs.to(self.device)
+                tensors_to_ims(inputs)
                 targets = targets.to(self.device)
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
@@ -32,7 +33,7 @@ class ClassificationTrainer(BaseTrainer):
                 metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step+1, self.optimizer)
                 tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add_classification_table(og_imgs, outputs, targets, "train")
+            self.logger.add_classification_table(inputs, outputs, targets, "train")
             self.logger.add(metrics, "train")
         return metrics["loss"]
 
@@ -44,7 +45,7 @@ class ClassificationTrainer(BaseTrainer):
             with tqdm(self.val_dl, unit="batch") as tepoch:
                 tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
                 # Iterate over data.
-                for step, (inputs, targets, og_imgs) in enumerate(tepoch):
+                for step, (inputs, targets) in enumerate(tepoch):
                     inputs = inputs.to(self.device)
                     targets = targets.to(self.device)
                     # predict
@@ -55,6 +56,6 @@ class ClassificationTrainer(BaseTrainer):
                     metrics = compute_classification_metrics(loss, outputs, targets, total_metrics, step + 1)
                     tepoch.set_postfix(**metrics)
         if self.log:
-            self.logger.add_classification_table(og_imgs, outputs, targets, "val")
+            self.logger.add_classification_table(inputs, outputs, targets, "val")
             self.logger.add(metrics, "val")
         return metrics["loss"]

@@ -1,8 +1,6 @@
-from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, Subset
+from torch.utils.data import Dataset
 import glob
 import cv2
-import torch
-import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
@@ -10,11 +8,6 @@ from albumentations.pytorch import ToTensorV2
 default_transform = A.Compose([
     A.Resize(224, 224),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-    ToTensorV2(),
-])
-
-resize_transform = A.Compose([
-    A.Resize(224, 224),
     ToTensorV2(),
 ])
 
@@ -59,6 +52,4 @@ class FloodAreaSegmentation(Dataset):
         if len(mask.shape) == 2:
             mask = mask[None, ...]
 
-        og_img = resize_transform(image=img)["image"]
-
-        return transformed_img, mask, og_img
+        return transformed_img, mask

@@ -1,12 +1,29 @@
 import numpy as np
 import wandb
-import pandas as pd
 import matplotlib.pyplot as plt
-import torch
 import torch.nn as nn
-from abc import ABC
-import sklearn
-import cv2
+import torch
+from torchvision import transforms
+import albumentations as A
+
+
+def norm_tensor_to_original_im(norm_tensor):
+    inv_normalize = transforms.Normalize(
+        mean=[-0.485/0.229, -0.456/0.224, -0.406/0.255],
+        std=[1/0.229, 1/0.224, 1/0.255]
+    )
+    inv_tensor = inv_normalize(norm_tensor)
+    inv_array = inv_tensor.detach().cpu().numpy().transpose((1, 2, 0))
+    im = (inv_array*255).astype("uint8")
+    return im
+
+
+def tensors_to_ims(tensor_ims):
+    ims = []
+    for tensor_im in tensor_ims:
+        im = norm_tensor_to_original_im(tensor_im)
+        ims.append(im)
+    return ims
 
 
 def plot_segmentation_batch(y_pred, y_true, thr=0.5):
@@ -40,7 +57,6 @@ def segmentation_table(inputs, outputs, targets, labels):
         pred_mask = (pred_mask > 0.5).astype(np.float32)
         true_mask = np.squeeze(true_mask).astype("uint8")
         pred_mask = np.squeeze(pred_mask).astype("uint8")
-        img = img.permute((1, 2, 0)).cpu().detach().numpy().astype("uint8")
 
         pred_mask_img = wandb.Image(img, masks={"predictions": {"mask_data": pred_mask, "class_labels": labels}})
         true_mask_img = wandb.Image(img, masks={"ground_truth": {"mask_data": true_mask, "class_labels": labels}})
@@ -54,7 +70,7 @@ def classificiation_table(inputs, outputs, targets, labels):
     table = wandb.Table(columns=["Input", "Prediction", "Ground truth", "Probabilities"])
     outputs = nn.Softmax(dim=1)(outputs)
     for img, output, target in zip(inputs, outputs, targets):
-        img = img.permute((1, 2, 0)).cpu().detach().numpy().astype("uint8")
+        # img = img.permute((1, 2, 0)).cpu().detach().numpy().astype("uint8")
         img = wandb.Image(img)
         output_label = labels[torch.argmax(output).item()]
         target_label = labels[torch.argmax(target).item()]

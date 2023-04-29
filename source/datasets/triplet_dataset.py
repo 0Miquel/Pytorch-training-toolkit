@@ -1,8 +1,6 @@
 from torch.utils.data import Dataset
 import glob
 import cv2
-import torch
-import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import random
@@ -11,11 +9,6 @@ import random
 default_transform = A.Compose([
     A.Resize(224, 224),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-    ToTensorV2(),
-])
-
-resize_transform = A.Compose([
-    A.Resize(224, 224),
     ToTensorV2(),
 ])
 
