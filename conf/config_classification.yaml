@@ -1,8 +1,0 @@
-defaults:
-  - dataset: folder_dataset
-  - loss: cross_entropy
-  - model: resnet18
-  - optimizer: adam
-  - scheduler: onecycle
-  - transforms: mytransforms
-  - trainer: classification_trainer

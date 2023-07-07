@@ -1,0 +1,4 @@
+trainer_name: SemSegmentationTrainer
+n_epochs: 10
+device: cuda
+model_path: checkpoints/segmentation_model.pt  # path were the model will be saved

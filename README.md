@@ -1,12 +1,12 @@
-# Pytorch-train-pipeline
+# ToFu
+<img src="media/tofu.png" alt="drawing" width="400"/>
 
-Modular Pytorch pipeline for image classification and semantic segmentation.
+TorchFusion (ToFu) is a modular pytorch training pipeline.
 
-This pipeline integrates WandB, an experiment tracking tool for 
-machine learning, and Hydra, a framework that simplifies the development
-of research and other complex applications.
+It integrates the most well-known frameworks for machine learning like WandB for experiment 
+tracking, Hydra for configuration management or Optuna for hyperparameter search.
 
-In addition to that, the code is meant to be fully extensible, you should be able to 
+In addition to that, the code is meant to be fully extensible, it should be possible to
 implement your own custom models/losses/optimizers without changing 
 existing code.
 
@@ -18,8 +18,7 @@ Using WandB in the pipeline you will be able to:
 - Track the hyperparameters and metrics of every run
 - Display the predictions through the different epochs
 - Upload complex media and charts
-- Save your model as a WandB artifcat
-- Hyperparameter search using Sweeps
+- Save your model as a WandB artifact
 
 For more information on how it works, visit its [documentation](https://docs.wandb.ai/).
 
@@ -48,31 +47,22 @@ Hydra configuration is used when running a single training experiment.
 Such configuration is not used when doing hyperparameter search with WandB sweeps,
 as it will use the sweep as its configuration.
 
-# Train
+
+### Optuna
+TO-DO
+
+
+# Train 
 CLI command to run a training experiment.
 ```
-python main.py --config_name=<config_name> --wandb_name=<wandb_project_name>
+cd tools
+python train.py 
 ```
-- ``--config_name``: Name of .yaml file that specifies the config files 
-that will be used to build the configuration (e.g. config)
-- ``--wandb_name``: Name of the WandB project already created in order to track
-the experiment
-
-If no ``wandb_name`` is specified, then it will execute an offline training, which will
-not be logged into WandB, in case you are not interested in tracking that run.
-
-# Hyperparameter search (WandB sweep)
-CLI command to run a hyperparameter search experiment.
+Additional changes in the Hydra configuration can be added in the command line 
+in the following way:
 ```
-python main_sweep.py --sweep=<sweep_file> --sweep_count=<n_runs> --wandb_name=<wandb_project_name>
+python train.py optimizer.settings.lr=0.1 trainer.wandb=test_project
 ```
-- ``--sweep``: Name of the sweep file inside the ``sweeps`` folder to be used (e.g. sweep.yaml)
-- ``--sweep_count``: Number of runs to execute
-- ``--wandb_name``: Name of the WandB project already created in order to track
-the experiment
-
-All the arguments are necessary.
-
-After executing your sweep you will be able to see your sweep board in your WandB project and track
-all the runs.
-![sweep display](media/sweep_display.png)
+In this case we have changed the default learning rate in the optimizer to 0.1 and
+have set a wandb project name in order to log the results from the experiment,
+if no project name is given it will not log any results into wandb.

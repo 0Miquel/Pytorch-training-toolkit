@@ -1,0 +1,5 @@
+trainer_name: ClassificationTrainer
+n_epochs: 5
+device: cuda
+model_path: ../checkpoints/resnet_model.pt  # path were the model will be saved
+wandb: null

@@ -3,6 +3,7 @@ opencv-python
 albumentations
 wandb
 hydra-core
+hydra-optuna-sweeper
 matplotlib
 seaborn
 tqdm
@@ -10,4 +11,3 @@ segmentation-models-pytorch
 torch
 torchvision
 torchaudio
-
