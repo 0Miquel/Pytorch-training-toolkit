@@ -43,10 +43,6 @@ conf
 ```
 For more information on how it works, visit its [documentation](https://hydra.cc/docs/intro/).
 
-Hydra configuration is used when running a single training experiment. 
-Such configuration is not used when doing hyperparameter search with WandB sweeps,
-as it will use the sweep as its configuration.
-
 
 ### Optuna
 TO-DO
