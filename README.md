@@ -52,6 +52,14 @@ as it will use the sweep as its configuration.
 TO-DO
 
 
+# Installation
+Follow the next command lines to ensure you have ToFu installed.
+```commandline
+git clone https://github.com/0Miquel/ToFu.git
+cd ToFu
+pip install tofu
+```
+
 # Train 
 CLI command to run a training experiment.
 ```
