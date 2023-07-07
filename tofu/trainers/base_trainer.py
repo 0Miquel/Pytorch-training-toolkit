@@ -67,6 +67,6 @@ class BaseTrainer(ABC):
 
     @staticmethod
     def save_model(model, model_path):
-        for path_dir in model_path.split("/")[:-1]:
-            os.makedirs(path_dir, exist_ok=True)
+        model_dir = "/".join(model_path.split("/")[:-1])
+        os.makedirs(model_dir, exist_ok=True)
         torch.save(model.state_dict(), model_path)

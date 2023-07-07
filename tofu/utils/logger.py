@@ -12,7 +12,7 @@ def get_logger(cfg):
 class Logger:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.project_name = self.cfg.trainer.wandb
+        self.project_name = self.cfg["trainer"]["wandb"]
         self.run = wandb.init(project=self.project_name, config=OmegaConf.to_object(cfg))
 
         self.labels = self.cfg["data"]["settings"]["labels"]

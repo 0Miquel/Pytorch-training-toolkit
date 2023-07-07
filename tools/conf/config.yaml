@@ -6,3 +6,4 @@ defaults:
   - scheduler: onecycle
   - transforms: mytransforms
   - trainer: classification_trainer
+  - override hydra/job_logging: disabled
