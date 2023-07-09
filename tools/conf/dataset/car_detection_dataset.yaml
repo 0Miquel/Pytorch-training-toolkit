@@ -1,7 +1,7 @@
 dataset_name: DetectionDataset
-train_path: data/car_detection/training_images
-val_path: data/car_detection/validation_images
+train_path: ../data/car_detection/training_images
+val_path: ../data/car_detection/validation_images
 settings:
   batch_size: 16
-  csv_file: data/car_detection/train_solution_bounding_boxes.csv
+  csv_file: ../data/car_detection/train_solution_bounding_boxes.csv
   labels: ["car"]

@@ -40,6 +40,7 @@ class ClassificationTrainer(BaseTrainer):
     def val_epoch(self, epoch):
         self.model.eval()
         stats = init_classification_metrics()
+        running_loss = 0
         with torch.no_grad():
             # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -51,9 +52,13 @@ class ClassificationTrainer(BaseTrainer):
                     outputs = self.model(batch["imgs"])
                     # loss
                     loss = self.loss(outputs, batch["labels"])
+                    # COMPUTE EPOCHS LOSS
+                    running_loss += loss.item()
+                    epoch_loss = running_loss / (step + 1)
                     # compute metrics for this epoch and loss
-                    stats = compute_classification_metrics(loss, outputs, batch["labels"], stats, step + 1)
-                tepoch.set_postfix(**stats)
+                    metrics = compute_classification_metrics(outputs, batch["labels"], stats, step + 1)
+                    metrics.update({"loss": epoch_loss})
+                    tepoch.set_postfix(**metrics)
         if self.logger is not None:
             self.logger.add(metrics, "val")
-        return stats["loss"]
+        return metrics["acc"]

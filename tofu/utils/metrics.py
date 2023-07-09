@@ -9,17 +9,11 @@ def init_classification_metrics():
     return metrics
 
 
-def compute_classification_metrics(loss, outputs, targets, total_metrics, step, optimizer=None):
+def compute_classification_metrics(outputs, targets, total_metrics, step):
     epoch_metrics = {}
-    # LOSS
-    total_metrics["loss"] += loss.item()
-    epoch_metrics["loss"] = total_metrics["loss"] / step
     # ACCURACY
     total_metrics["acc"] += accuracy(outputs, targets)
     epoch_metrics["acc"] = total_metrics["acc"] / step
-    # LEARNING RATE
-    if optimizer is not None:
-        epoch_metrics["lr"] = optimizer.param_groups[0]['lr']
 
     return epoch_metrics
 

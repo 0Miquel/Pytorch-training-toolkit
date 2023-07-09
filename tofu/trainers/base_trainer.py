@@ -5,7 +5,7 @@ from tofu.models import get_model
 from tofu.optimizers import get_optimizer
 from tofu.schedulers import get_scheduler
 
-import math
+import hydra
 import os
 import time
 from abc import ABC, abstractmethod
@@ -25,7 +25,6 @@ class BaseTrainer(ABC):
 
         self.n_epochs = trainer_config["n_epochs"]
         self.device = trainer_config["device"]
-        self.model_path = trainer_config["model_path"]
         # DATASET
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
@@ -50,23 +49,32 @@ class BaseTrainer(ABC):
 
     def fit(self):
         since = time.time()
-        best_loss = math.inf
+        best_metric = 0
+
         for epoch in range(self.n_epochs):
             self.train_epoch(epoch)
-            val_loss = self.val_epoch(epoch)
-            if val_loss < best_loss:
-                best_loss = val_loss
-                self.save_model(self.model, self.model_path)
+            metric = self.val_epoch(epoch)
+
+            if metric > best_metric:
+                best_metric = metric
+                self.save_model(self.model, 'best_epoch.pt')
+            self.save_model(self.model, 'last_epoch.pt')
+
             if self.logger is not None:
                 self.logger.upload()
+
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
         if self.logger is not None:
-            self.logger.log_model(self.model_path)
             self.logger.finish()
 
+        return best_metric
+
     @staticmethod
-    def save_model(model, model_path):
-        model_dir = "/".join(model_path.split("/")[:-1])
-        os.makedirs(model_dir, exist_ok=True)
+    def save_model(model, model_name):
+        outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+        ckpts_dir = os.path.join(outputs_dir, 'ckpts')
+        os.makedirs(ckpts_dir, exist_ok=True)
+        model_path = os.path.join(ckpts_dir, model_name)
         torch.save(model.state_dict(), model_path)

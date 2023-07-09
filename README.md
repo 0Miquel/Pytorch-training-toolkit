@@ -54,7 +54,7 @@ Follow the next command lines to ensure you have ToFu installed.
 git clone https://github.com/0Miquel/ToFu.git
 cd ToFu
 pip install -r requirements.txt
-pip install tofu
+pip install .
 ```
 
 # Train 

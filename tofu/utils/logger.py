@@ -37,10 +37,9 @@ class Logger:
         wandb.log(self.logs)
 
     def log_model(self, model_path):
-        if not self.sweep:
-            art = wandb.Artifact(self.project_name, type="model")
-            art.add_file(model_path)
-            self.run.log_artifact(art)
+        art = wandb.Artifact(self.project_name, type="model")
+        art.add_file(model_path)
+        self.run.log_artifact(art)
 
     def finish(self):
         self.run.finish()

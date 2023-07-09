@@ -1,6 +1,6 @@
 dataset_name: TripletMITDataset
-train_path: data/MIT_split/train
-val_path: data/MIT_split/test
+train_path: ../data/MIT_split/train
+val_path: ../data/MIT_split/test
 settings:
   batch_size: 8
   labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]
