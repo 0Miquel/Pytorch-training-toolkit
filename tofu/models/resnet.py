@@ -1,14 +1,16 @@
 import torch.nn as nn
-import torch
 from torchvision import models
-import segmentation_models_pytorch as smp
-from abc import ABC, abstractmethod
+from torchvision.models import ResNet50_Weights, ResNet18_Weights
 
 
 class Resnet50(nn.Module):
     def __init__(self, settings):
         super(Resnet50, self).__init__()
-        self.model = models.resnet50(pretrained=settings["pretrained"])
+        if settings["pretrained"]:
+            self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+        else:
+            self.model = models.resnet50()
+
         self.freeze_model(settings["fine_tune"])
         in_features = self.model.fc.in_features
         self.model.fc = nn.Linear(in_features=in_features, out_features=settings["n_classes"], bias=True)
@@ -31,7 +33,11 @@ class Resnet50(nn.Module):
 class Resnet18(nn.Module):
     def __init__(self, settings):
         super(Resnet18, self).__init__()
-        self.model = models.resnet18(pretrained=settings["pretrained"])
+        if settings["pretrained"]:
+            self.model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
+        else:
+            self.model = models.resnet18()
+
         self.freeze_model(settings["fine_tune"])
         in_features = self.model.fc.in_features
         self.model.fc = nn.Linear(in_features=in_features, out_features=settings["n_classes"], bias=True)

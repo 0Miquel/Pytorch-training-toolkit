@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - dataset: folder_dataset
   - loss: cross_entropy
   - model: resnet18
@@ -6,4 +7,14 @@ defaults:
   - scheduler: onecycle
   - transforms: mytransforms
   - trainer: classification_trainer
+  - override hydra/sweeper: optuna
   - override hydra/job_logging: disabled
+
+
+hydra:
+  sweeper:
+    direction: "maximize"
+    study_name: null
+    storage: null
+    n_trials: 20
+    n_jobs: 2

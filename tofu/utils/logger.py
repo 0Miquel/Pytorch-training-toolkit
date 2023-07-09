@@ -15,7 +15,7 @@ class Logger:
         self.project_name = self.cfg["trainer"]["wandb"]
         self.run = wandb.init(project=self.project_name, config=OmegaConf.to_object(cfg))
 
-        self.labels = self.cfg["data"]["settings"]["labels"]
+        self.labels = self.cfg["dataset"]["settings"]["labels"]
         self.labels = {i: label for i, label in enumerate(self.labels)}
         self.logs = {}
 

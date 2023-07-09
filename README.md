@@ -10,6 +10,13 @@ In addition to that, the code is meant to be fully extensible, it should be poss
 implement your own custom models/losses/optimizers without changing 
 existing code.
 
+## Overview
+- [Frameworks](#frameworks)
+- [Installation](#installation)
+- [Train](#train)
+
+## Frameworks
+Brief introduction to the frameworks that are integrated into the pipeline.
 
 ### WandB
 WandB is an experiment tracking tool for machine learning.
@@ -45,10 +52,26 @@ For more information on how it works, visit its [documentation](https://hydra.cc
 
 
 ### Optuna
-TO-DO
+In order to use Optuna together with Hydra we first need to install the Optuna Sweeper plugin.
+```commandline
+pip install hydra-optuna-sweeper --upgrade
+```
+It is needed to set the optuna sweeper in the config file, but it is already done by default in `config.yaml`.
+```yaml
+defaults:
+  - override hydra/sweeper: optuna
+```
+Further changes can be added in the config file like the number of runs to execute or
+whether we want to maximize or minimize our objective metric.
 
+To run a sweeper we need to use a command like this one, here we will be executing multiple 
+runs with different learning rates.
+```commandline
+python train.py --multirun 'optimizer.settings.lr=choice(0.1, 0.01, 0.001, 0.0001)'
+```
+For more information on how to create sweepers visit its [documentation](https://hydra.cc/docs/plugins/optuna_sweeper/).
 
-# Installation
+## Installation
 Follow the next command lines to ensure you have ToFu installed.
 ```commandline
 git clone https://github.com/0Miquel/ToFu.git
@@ -57,7 +80,7 @@ pip install -r requirements.txt
 pip install .
 ```
 
-# Train 
+## Train
 CLI command to run a training experiment.
 ```
 cd tools
