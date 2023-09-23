@@ -39,7 +39,8 @@ class SemSegmentationTrainer(BaseTrainer):
 
     def val_epoch(self, epoch):
         self.model.eval()
-        total_metrics = init_sem_segmentation_metrics()
+        stats = init_sem_segmentation_metrics()
+        running_loss = 0
         with torch.no_grad():
             # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -51,8 +52,12 @@ class SemSegmentationTrainer(BaseTrainer):
                     outputs = self.model(batch["imgs"])
                     # loss
                     loss = self.loss(outputs, batch["masks"])
+                    # COMPUTE EPOCHS LOSS
+                    running_loss += loss.item()
+                    epoch_loss = running_loss / (step + 1)
                     # compute metrics for this epoch and loss
-                    metrics = compute_sem_segmentation_metrics(loss, outputs, batch["masks"], total_metrics, step + 1)
+                    metrics = compute_sem_segmentation_metrics(outputs, batch["masks"], stats, step + 1)
+                    metrics.update({"loss": epoch_loss})
                     tepoch.set_postfix(**metrics)
         if self.logger is not None:
             self.logger.add_segmentation_table(batch["imgs"], outputs, batch["masks"], "val")

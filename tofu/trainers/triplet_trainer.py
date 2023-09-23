@@ -39,6 +39,7 @@ class TripletTrainer(BaseTrainer):
     def val_epoch(self, epoch):
         self.model.eval()
         total_metrics = init_metric_learning_metrics()
+        running_loss = 0
         with torch.no_grad():
             with tqdm(self.val_dl, unit="batch") as tepoch:
                 tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
@@ -48,8 +49,12 @@ class TripletTrainer(BaseTrainer):
                     feat_im0, feat_im1, feat_im2 = self.model(batch["anchors"], batch["positives"], batch["negatives"])
                     # loss
                     loss = self.loss(feat_im0, feat_im1, feat_im2)
+                    # COMPUTE EPOCHS LOSS
+                    running_loss += loss.item()
+                    epoch_loss = running_loss / (step + 1)
                     # compute metrics for this epoch and loss
                     metrics = compute_metric_learning_metrics(loss, total_metrics, step + 1)
+                    metrics.update({"loss": epoch_loss})
                     tepoch.set_postfix(**metrics)
         if self.logger is not None:
             self.logger.add(metrics, "val")

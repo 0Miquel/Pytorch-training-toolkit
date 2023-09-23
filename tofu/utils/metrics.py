@@ -5,7 +5,7 @@ import numpy as np
 
 # CLASSIFICATION #######################################################################################################
 def init_classification_metrics():
-    metrics = {"loss": 0, "acc": 0}
+    metrics = {"acc": 0}
     return metrics
 
 
@@ -20,36 +20,21 @@ def compute_classification_metrics(outputs, targets, total_metrics, step):
 
 # METRIC LEARNING ######################################################################################################
 def init_metric_learning_metrics():
-    metrics = {"loss": 0}
-    return metrics
+    return {}
 
 
-def compute_metric_learning_metrics(loss, total_metrics, step, optimizer=None):
-    epoch_metrics = {}
-    # LOSS
-    total_metrics["loss"] += loss.item()
-    epoch_metrics["loss"] = total_metrics["loss"] / step
-    # LEARNING RATE
-    if optimizer is not None:
-        epoch_metrics["lr"] = optimizer.param_groups[0]['lr']
-
-    return epoch_metrics
+def compute_metric_learning_metrics(loss, total_metrics, step):
+    return {}
 
 
 # SEMANTIC SEGMENTATION ################################################################################################
 def init_sem_segmentation_metrics():
-    metrics = {"loss": 0, "dice": 0, "iou": 0}
+    metrics = {"dice": 0, "iou": 0}
     return metrics
 
 
-def compute_sem_segmentation_metrics(loss, outputs, targets, total_metrics, step, optimizer=None):
+def compute_sem_segmentation_metrics(outputs, targets, total_metrics, step):
     epoch_metrics = {}
-    # LOSS
-    total_metrics["loss"] += loss.item()
-    epoch_metrics["loss"] = total_metrics["loss"] / step
-    # LEARNING RATE
-    if optimizer is not None:
-        epoch_metrics["lr"] = optimizer.param_groups[0]['lr']
     # DICE
     total_metrics["dice"] += dice_coef(targets, outputs).cpu().detach().numpy()
     epoch_metrics["dice"] = total_metrics["dice"] / step

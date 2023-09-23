@@ -1,25 +1,13 @@
 from torch.utils.data import Dataset
 import glob
 import cv2
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-
-
-default_transform = A.Compose([
-    A.Resize(224, 224),
-    A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-    ToTensorV2(),
-])
+import os
 
 
 class FloodAreaSegmentation(Dataset):
-    def __init__(self, settings, transforms=default_transform):
-        images_path = settings["images_path"]
-        masks_path = settings["masks_path"]
-        if images_path[-1] != "/":
-            images_path = images_path + "/"
-        if masks_path[-1] != "/":
-            masks_path = masks_path + "/"
+    def __init__(self, data_path, settings, transforms):
+        images_path = os.path.join(data_path, settings["images_path"])
+        masks_path = os.path.join(data_path, settings["masks_path"])
 
         img_paths = glob.glob(images_path + "*.jpg")
         mask_paths = glob.glob(masks_path + "*.png")
@@ -52,4 +40,4 @@ class FloodAreaSegmentation(Dataset):
         if len(mask.shape) == 2:
             mask = mask[None, ...]
 
-        return transformed_img, mask
+        return {"imgs": transformed_img, "masks": mask}

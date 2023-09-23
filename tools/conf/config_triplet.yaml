@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - dataset: triplet_mit_dataset
   - loss: triplet_margin_loss
   - model: triplet
@@ -6,3 +7,13 @@ defaults:
   - scheduler: onecycle
   - transforms: mytransforms
   - trainer: triplet_trainer
+  - override hydra/sweeper: optuna
+  - override hydra/job_logging: disabled
+
+hydra:
+  sweeper:
+    direction: "maximize"
+    study_name: null
+    storage: null
+    n_trials: 20
+    n_jobs: 2
