@@ -1,0 +1,11 @@
+generator:
+  model_name: Generator
+  settings:
+    latent_vector: 100
+    features: 64
+    channels: 3
+discriminator:
+  model_name: Discriminator
+  settings:
+    features: 64
+    channels: 3

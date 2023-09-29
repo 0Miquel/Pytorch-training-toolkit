@@ -3,8 +3,31 @@ import wandb
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch
+import hydra
+import os
+import cv2
 from torchvision import transforms
-import albumentations as A
+import matplotlib.animation as animation
+
+
+def save_fake_imgs(imgs, epoch):
+    outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    figs_dir = os.path.join(outputs_dir, 'figs')
+    os.makedirs(figs_dir, exist_ok=True)
+    imgs_path = os.path.join(figs_dir, f"fake_imgs_{epoch}.jpg")
+    plt.imshow(np.transpose(imgs, (1, 2, 0)))
+    plt.savefig(imgs_path)
+    plt.close()
+
+
+def create_animation_gif(img_list):
+    # Create animation for the training process
+    fig = plt.figure(figsize=(8, 8))
+    plt.axis("off")
+    ims = [[plt.imshow(np.transpose(i, (1, 2, 0)), animated=True)] for i in img_list]
+    ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
+    # Save the animation as a GIF
+    ani.save('animation.gif', writer='pillow', fps=2)  # 'pillow' is the writer for GIF format
 
 
 def norm_tensor_to_original_im(norm_tensor):

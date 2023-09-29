@@ -14,10 +14,10 @@ class Logger:
         self.cfg = cfg
         self.project_name = self.cfg["trainer"]["wandb"]
         self.run = wandb.init(project=self.project_name, config=OmegaConf.to_object(cfg))
-
-        self.labels = self.cfg["dataset"]["settings"]["labels"]
-        self.labels = {i: label for i, label in enumerate(self.labels)}
         self.logs = {}
+        if "labels" in self.cfg["dataset"]["settings"].keys():
+            self.labels = self.cfg["dataset"]["settings"]["labels"]
+            self.labels = {i: label for i, label in enumerate(self.labels)}
 
     def add_classification_table(self, inputs, outputs, targets, phase):
         og_imgs = tensors_to_ims(inputs)

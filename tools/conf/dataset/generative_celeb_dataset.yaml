@@ -1,0 +1,6 @@
+dataset_name: GenerativeCelebDataset
+train_path: ../data/img_align_celeba
+val_path: null
+settings:
+  batch_size: 128
+  # labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]

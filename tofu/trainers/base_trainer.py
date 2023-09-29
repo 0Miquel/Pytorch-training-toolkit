@@ -14,7 +14,7 @@ import torch
 
 class BaseTrainer(ABC):
     def __init__(self, config):
-        set_random_seed(42)
+        # set_random_seed(42)
 
         self.config = config
         trainer_config = config["trainer"]
@@ -49,14 +49,14 @@ class BaseTrainer(ABC):
 
     def fit(self):
         since = time.time()
-        best_metric = 0
+        best_loss = 0
 
         for epoch in range(self.n_epochs):
             self.train_epoch(epoch)
-            metric = self.val_epoch(epoch)
+            val_loss = self.val_epoch(epoch)
 
-            if metric > best_metric:
-                best_metric = metric
+            if val_loss < best_loss:
+                best_loss = val_loss
                 self.save_model(self.model, 'best_epoch.pt')
             self.save_model(self.model, 'last_epoch.pt')
 
@@ -69,7 +69,7 @@ class BaseTrainer(ABC):
         if self.logger is not None:
             self.logger.finish()
 
-        return best_metric
+        return best_loss
 
     @staticmethod
     def save_model(model, model_name):

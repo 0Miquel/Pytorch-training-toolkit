@@ -61,4 +61,4 @@ class ClassificationTrainer(BaseTrainer):
                     tepoch.set_postfix(**metrics)
         if self.logger is not None:
             self.logger.add(metrics, "val")
-        return metrics["acc"]
+        return epoch_loss

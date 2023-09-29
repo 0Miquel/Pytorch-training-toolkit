@@ -62,4 +62,4 @@ class SemSegmentationTrainer(BaseTrainer):
         if self.logger is not None:
             self.logger.add_segmentation_table(batch["imgs"], outputs, batch["masks"], "val")
             self.logger.add(metrics, "val")
-        return metrics["loss"]
+        return epoch_loss

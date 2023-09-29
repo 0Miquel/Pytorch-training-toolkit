@@ -59,4 +59,4 @@ class TripletTrainer(BaseTrainer):
         if self.logger is not None:
             self.logger.add(metrics, "val")
 
-        return metrics["loss"]
+        return epoch_loss

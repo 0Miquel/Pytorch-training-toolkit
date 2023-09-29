@@ -1,14 +1,15 @@
 defaults:
   - _self_
-  - dataset: flood_area_dataset
-  - loss: bce_logits
-  - model: unet
+  - dataset: generative_celeb_dataset
+  - loss: bce
+  - model: dcgan
   - optimizer: adam
-  - scheduler: onecycle
-  - transforms: mytransforms
-  - trainer: segmentation_trainer
+#  - scheduler: onecycle
+  - transforms: dcgan_transforms
+  - trainer: generative_gan_trainer
   - override hydra/sweeper: optuna
   - override hydra/job_logging: disabled
+
 
 hydra:
   sweeper:
