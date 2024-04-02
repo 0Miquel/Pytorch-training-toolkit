@@ -18,26 +18,30 @@ class BaseTrainer(ABC):
 
         self.config = config
         trainer_config = config["trainer"]
+        self.n_epochs = trainer_config["n_epochs"]
+        self.device = trainer_config["device"]
 
         self.logger = None
         if trainer_config["wandb"] is not None:
             self.logger = get_logger(config)
 
-        self.n_epochs = trainer_config["n_epochs"]
-        self.device = trainer_config["device"]
         # DATASET
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
         self.val_dl = dataloaders["val"]
+
         # LOSS
         self.loss = get_loss(config['loss'])
+
         # MODEL
-        model = get_model(config['model']).to(self.device)
-        self.model = torch.compile(model)
+        self.model = get_model(config['model']).to(self.device)
+        self.model = torch.compile(self.model)
+
         # OPTIMIZER
         self.optimizer = get_optimizer(config['optimizer'], self.model)
-        self.scheduler = get_scheduler(config['scheduler'], self.optimizer, len(self.train_dl),
-                                       n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
+        total_steps = len(self.train_dl) * self.n_epochs
+        self.scheduler = get_scheduler(config['scheduler'], self.optimizer, total_steps) \
+            if "scheduler" in config.keys() else None
 
     @abstractmethod
     def train_epoch(self, epoch):

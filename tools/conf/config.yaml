@@ -7,8 +7,10 @@ defaults:
   - scheduler: onecycle
   - transforms: mytransforms
   - trainer: classification_trainer
-  - override hydra/sweeper: optuna
+
   - override hydra/job_logging: disabled
+  - override hydra/sweeper: optuna
+
 
 
 hydra:

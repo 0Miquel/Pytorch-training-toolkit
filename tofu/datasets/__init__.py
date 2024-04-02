@@ -13,12 +13,10 @@ package_path = __path__
 module_names = [name for _, name, _ in pkgutil.walk_packages(package_path)]
 
 
-def get_dataloaders(config_dataset, config_transforms):
-    dataset_name = config_dataset["dataset_name"]
-    settings = config_dataset["settings"]
-    train_path = config_dataset["train_path"]
-    val_path = config_dataset["val_path"]
-    transforms = get_transforms(config_transforms)
+def get_dataloaders(cfg_dataset, cfg_transforms):
+    dataset_name = cfg_dataset["dataset_name"]
+    settings = cfg_dataset["settings"]
+    transforms = get_transforms(cfg_transforms)
 
     train_dataset = None
     val_dataset = None
@@ -26,56 +24,41 @@ def get_dataloaders(config_dataset, config_transforms):
     for module_name in module_names:
         module = importlib.import_module(f'{package_name}.{module_name}')
         if hasattr(module, dataset_name):
-            train_dataset = getattr(module, dataset_name)(train_path, settings, transforms["train"])
-            val_dataset = getattr(module, dataset_name)(val_path, settings, transforms["val"])
+            train_dataset = getattr(module, dataset_name)(train=True, transforms=transforms["train"], **settings)
+            val_dataset = getattr(module, dataset_name)(train=False, transforms=transforms["val"], **settings)
             break
 
     if train_dataset is None or val_dataset is None:
-        raise f"Dataset with name {dataset_name} not found"
+        raise AttributeError(f"Dataset with name {dataset_name} not found")
     else:
-        train_dl = DataLoader(train_dataset, batch_size=settings["batch_size"], shuffle=True)
+        train_dl = DataLoader(train_dataset, batch_size=train_dataset.batch_size, shuffle=True)
         # pre-shuffle validation set, it won't be shuffled in eval phase
         val_indices = list(range(len(val_dataset)))
         np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
-        val_dataset = Subset(val_dataset, val_indices)
-        val_dl = DataLoader(val_dataset, batch_size=settings["batch_size"], shuffle=False)
+        val_dataset = Subset(val_dataset, val_indices).dataset
+        val_dl = DataLoader(val_dataset, batch_size=val_dataset.batch_size, shuffle=False)
 
         return {"train": train_dl, "val": val_dl}
 
 
-def get_train_dataloader(config_dataset, config_transforms):
-    dataset_name = config_dataset["dataset_name"]
-    settings = config_dataset["settings"]
-    train_path = config_dataset["train_path"]
-    transforms = get_transforms(config_transforms)
-
-    train_dataset = None
-    # get loss defined in this package
-    for module_name in module_names:
-        module = importlib.import_module(f'{package_name}.{module_name}')
-        if hasattr(module, dataset_name):
-            train_dataset = getattr(module, dataset_name)(train_path, settings, transforms["train"])
-            break
-
-    if train_dataset is None:
-        raise f"Dataset with name {dataset_name} not found"
-    else:
-        train_dl = DataLoader(train_dataset, batch_size=settings["batch_size"], shuffle=True)
-
-        return {"train": train_dl}
-
-
-def get_transforms(config_transforms):
+def get_transforms(cfg_transforms):
     transforms = {}
-    if "train" in config_transforms.keys():
-        train_transforms = get_albumentation_transforms(config_transforms["train"])
-        transforms.update({"train": train_transforms})
-    if "val" in config_transforms.keys():
-        val_transforms = get_albumentation_transforms(config_transforms["val"])
-        transforms.update({"val": val_transforms})
+
+    if "train" in cfg_transforms.keys():
+        train_transforms = get_albumentations_transforms(cfg_transforms["train"])
+        transforms["train"] = train_transforms
+    else:
+        transforms["train"] = A.Compose([ToTensorV2()])
+
+    if "val" in cfg_transforms.keys():
+        val_transforms = get_albumentations_transforms(cfg_transforms["val"])
+        transforms["val"] = val_transforms
+    else:
+        transforms["val"] = A.Compose([ToTensorV2()])
+
     return transforms
 
 
-def get_albumentation_transforms(transforms_dict):
+def get_albumentations_transforms(transforms_dict):
     transform = A.Compose([getattr(A, key)(**value) for key, value in transforms_dict.items()] + [ToTensorV2()])
     return transform

@@ -9,9 +9,9 @@ package_path = __path__
 module_names = [name for _, name, _ in pkgutil.walk_packages(package_path)]
 
 
-def get_optimizer(config, model):
-    optimizer_name = config['optimizer_name']
-    settings = config['settings']
+def get_optimizer(cfg, model):
+    optimizer_name = cfg['optimizer_name']
+    settings = cfg['settings'] if 'settings' in cfg.keys() else {}
 
     if hasattr(optim, optimizer_name):
         # get optimizer from torch.optim package
@@ -25,4 +25,4 @@ def get_optimizer(config, model):
                 optimizer = getattr(module, optimizer_name)(model.parameters(), **settings)
                 return optimizer
 
-    raise f"Optimizer with name {optimizer_name} not found"
+    raise AttributeError(f"Optimizer with name {optimizer_name} not found")
