@@ -20,7 +20,8 @@ def get_dataloaders(cfg_dataset, cfg_transforms):
 
     train_dataset = None
     val_dataset = None
-    # get loss defined in this package
+
+    # get dataset defined in this package
     for module_name in module_names:
         module = importlib.import_module(f'{package_name}.{module_name}')
         if hasattr(module, dataset_name):
@@ -28,6 +29,7 @@ def get_dataloaders(cfg_dataset, cfg_transforms):
             val_dataset = getattr(module, dataset_name)(train=False, transforms=transforms["val"], **settings)
             break
 
+    # build dataloaders
     if train_dataset is None or val_dataset is None:
         raise AttributeError(f"Dataset with name {dataset_name} not found")
     else:
