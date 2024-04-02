@@ -6,33 +6,35 @@ import torchvision.utils as vutils
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from tofu.utils import *
+from tofu.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger
 from tofu.datasets import get_train_dataloader
 from tofu.losses import get_loss
 from tofu.models import get_model
 from tofu.optimizers import get_optimizer
 from tofu.schedulers import get_scheduler
 
+import torch
+
 
 class DCGANTrainer:
     def __init__(self, config):
-        set_random_seed(42)
-
         self.config = config
         trainer_config = config["trainer"]
+        self.n_epochs = trainer_config["n_epochs"]
+        self.device = trainer_config["device"]
         self.latent_vector_size = config['model']['generator']["settings"]["latent_vector"]
 
         self.logger = None
         if trainer_config["wandb"] is not None:
-            self.logger = get_logger(config)
+            self.logger = Logger(config)
 
-        self.n_epochs = trainer_config["n_epochs"]
-        self.device = trainer_config["device"]
         # DATASET
         dataloaders = get_train_dataloader(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
+
         # LOSS
         self.loss = get_loss(config['loss'])
+
         # MODEL
         netG = get_model(config['model']['generator']).to(self.device)
         self.netG = torch.compile(netG)
@@ -40,13 +42,15 @@ class DCGANTrainer:
         netD = get_model(config['model']['discriminator']).to(self.device)
         self.netD = torch.compile(netD)
         self.netD.apply(weights_init)
+
         # OPTIMIZER
+        total_steps = len(self.train_dl) * self.n_epochs
         self.optimizerG = get_optimizer(config['optimizer'], self.netG)
         self.optimizerD = get_optimizer(config['optimizer'], self.netD)
-        self.schedulerG = get_scheduler(config['scheduler'], self.optimizerG, len(self.train_dl),
-                                        n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
-        self.schedulerD = get_scheduler(config['scheduler'], self.optimizerD, len(self.train_dl),
-                                        n_epochs=self.n_epochs) if "scheduler" in config.keys() else None
+        self.schedulerG = get_scheduler(config['scheduler'], self.optimizerG, total_steps) \
+            if "scheduler" in config.keys() else None
+        self.schedulerD = get_scheduler(config['scheduler'], self.optimizerD, total_steps) \
+            if "scheduler" in config.keys() else None
 
     def train_epoch(self, epoch):
         self.netG.train()

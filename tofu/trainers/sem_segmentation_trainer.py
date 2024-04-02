@@ -1,6 +1,7 @@
 from tqdm import tqdm
-from tofu.utils import *
+from tofu.utils import load_batch_to_device, init_sem_segmentation_metrics, compute_sem_segmentation_metrics
 from .base_trainer import BaseTrainer
+import torch
 
 
 class SemSegmentationTrainer(BaseTrainer):
@@ -10,6 +11,7 @@ class SemSegmentationTrainer(BaseTrainer):
     def train_epoch(self, epoch):
         self.model.train()
         running_loss = 0
+
         # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
@@ -24,23 +26,26 @@ class SemSegmentationTrainer(BaseTrainer):
                 loss = self.loss(outputs, batch["masks"])
                 # backward
                 loss.backward()
+                # optimize
                 self.optimizer.step()
                 if self.scheduler is not None:
                     self.scheduler.step()
-                # COMPUTE EPOCHS LOSS
+                # compute epoch loss
                 running_loss += loss.item()
                 epoch_loss = running_loss / (step + 1)
-                # LEARNING RATE
                 current_lr = self.optimizer.param_groups[0]['lr']
                 tepoch.set_postfix({"loss": epoch_loss, "lr": current_lr})
+
         if self.logger is not None:
-            self.logger.add(metrics, "train")
+            self.logger.add({"loss": epoch_loss, "lr": current_lr}, "train")
+
         return epoch_loss
 
     def val_epoch(self, epoch):
         self.model.eval()
-        stats = init_sem_segmentation_metrics()
+        metrics = init_sem_segmentation_metrics()
         running_loss = 0
+
         with torch.no_grad():
             # use tqdm to track progress
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -52,14 +57,16 @@ class SemSegmentationTrainer(BaseTrainer):
                     outputs = self.model(batch["imgs"])
                     # loss
                     loss = self.loss(outputs, batch["masks"])
-                    # COMPUTE EPOCHS LOSS
+                    # compute epoch loss
                     running_loss += loss.item()
                     epoch_loss = running_loss / (step + 1)
-                    # compute metrics for this epoch and loss
-                    metrics = compute_sem_segmentation_metrics(outputs, batch["masks"], stats, step + 1)
-                    metrics.update({"loss": epoch_loss})
-                    tepoch.set_postfix(**metrics)
+                    # compute metrics for this epoch
+                    epoch_metrics = compute_sem_segmentation_metrics(outputs, batch["masks"], metrics)
+                    epoch_metrics["loss"] = epoch_loss
+                    tepoch.set_postfix(**epoch_metrics)
+
         if self.logger is not None:
             self.logger.add_segmentation_table(batch["imgs"], outputs, batch["masks"], "val")
             self.logger.add(metrics, "val")
+
         return epoch_loss

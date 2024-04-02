@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from tofu.utils import *
+import torch
 from .base_trainer import BaseTrainer
 
 

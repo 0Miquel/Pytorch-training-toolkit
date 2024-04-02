@@ -1,19 +1,12 @@
 import wandb
-from omegaconf import DictConfig
-from omegaconf import OmegaConf
-from tofu.utils import *
-from tofu.utils import segmentation_table
-
-
-def get_logger(cfg):
-    return Logger(cfg)
+from tofu.utils import tensors_to_ims, classificiation_table, segmentation_table
 
 
 class Logger:
     def __init__(self, cfg):
         self.cfg = cfg
         self.project_name = self.cfg["trainer"]["wandb"]
-        self.run = wandb.init(project=self.project_name, config=OmegaConf.to_object(cfg))
+        self.run = wandb.init(project=self.project_name, config=cfg)
         self.logs = {}
         if "labels" in self.cfg["dataset"]["settings"].keys():
             self.labels = self.cfg["dataset"]["settings"]["labels"]
@@ -35,11 +28,6 @@ class Logger:
 
     def upload(self):
         wandb.log(self.logs)
-
-    def log_model(self, model_path):
-        art = wandb.Artifact(self.project_name, type="model")
-        art.add_file(model_path)
-        self.run.log_artifact(art)
 
     def finish(self):
         self.run.finish()

@@ -1,4 +1,4 @@
-from tofu.utils import *
+from tofu.utils import Logger
 from tofu.datasets import get_dataloaders
 from tofu.losses import get_loss
 from tofu.models import get_model
@@ -14,8 +14,6 @@ import torch
 
 class BaseTrainer(ABC):
     def __init__(self, config):
-        # set_random_seed(42)
-
         self.config = config
         trainer_config = config["trainer"]
         self.n_epochs = trainer_config["n_epochs"]
@@ -23,7 +21,7 @@ class BaseTrainer(ABC):
 
         self.logger = None
         if trainer_config["wandb"] is not None:
-            self.logger = get_logger(config)
+            self.logger = Logger(config)
 
         # DATASET
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
@@ -35,7 +33,7 @@ class BaseTrainer(ABC):
 
         # MODEL
         self.model = get_model(config['model']).to(self.device)
-        self.model = torch.compile(self.model)
+        # self.model = torch.compile(self.model)
 
         # OPTIMIZER
         self.optimizer = get_optimizer(config['optimizer'], self.model)

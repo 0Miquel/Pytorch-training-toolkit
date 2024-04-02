@@ -5,15 +5,15 @@ import numpy as np
 
 # CLASSIFICATION #######################################################################################################
 def init_classification_metrics():
-    metrics = {"acc": 0}
+    metrics = {"acc": []}
     return metrics
 
 
-def compute_classification_metrics(outputs, targets, total_metrics, step):
+def compute_classification_metrics(outputs, targets, metrics):
     epoch_metrics = {}
     # ACCURACY
-    total_metrics["acc"] += accuracy(outputs, targets)
-    epoch_metrics["acc"] = total_metrics["acc"] / step
+    metrics["acc"].append(accuracy(outputs, targets))
+    epoch_metrics["acc"] = np.mean(metrics["acc"])
 
     return epoch_metrics
 
@@ -23,24 +23,24 @@ def init_metric_learning_metrics():
     return {}
 
 
-def compute_metric_learning_metrics(loss, total_metrics, step):
+def compute_metric_learning_metrics(loss, metrics):
     return {}
 
 
 # SEMANTIC SEGMENTATION ################################################################################################
 def init_sem_segmentation_metrics():
-    metrics = {"dice": 0, "iou": 0}
+    metrics = {"dice": [], "iou": []}
     return metrics
 
 
-def compute_sem_segmentation_metrics(outputs, targets, total_metrics, step):
+def compute_sem_segmentation_metrics(outputs, targets, metrics):
     epoch_metrics = {}
     # DICE
-    total_metrics["dice"] += dice_coef(targets, outputs).cpu().detach().numpy()
-    epoch_metrics["dice"] = total_metrics["dice"] / step
+    metrics["dice"].append(dice_coef(targets, outputs).cpu().detach().numpy())
+    epoch_metrics["dice"] = np.mean(metrics["dice"])
     # IOU
-    total_metrics["iou"] += iou_coef(targets, outputs).cpu().detach().numpy()
-    epoch_metrics["iou"] = total_metrics["iou"] / step
+    metrics["iou"].append(iou_coef(targets, outputs).cpu().detach().numpy())
+    epoch_metrics["iou"] = np.mean(metrics["iou"])
 
     return epoch_metrics
 
