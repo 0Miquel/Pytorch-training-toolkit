@@ -8,10 +8,10 @@ setuptools.setup(
     version="1.0.0",
     author="Miquel Romero Blanch",
     author_email="miquel.robla@gmail.com",
-    description="TorchFusion, a pytorch training pipeline",
+    description="TorchFusion, a pytorch training toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/0Miquel/Pytorch-training-pipeline",
+    url="https://github.com/0Miquel/ToFu",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
