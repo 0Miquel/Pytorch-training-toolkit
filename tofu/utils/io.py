@@ -14,7 +14,8 @@ def load_yaml_config(path):
 
 def load_batch_to_device(batch, device):
     for key, value in batch.items():
-        batch[key] = value.to(device)
+        if isinstance(value, torch.Tensor):
+            batch[key] = value.to(device)
     return batch
 
 

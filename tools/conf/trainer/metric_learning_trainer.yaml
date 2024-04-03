@@ -1,4 +1,4 @@
-trainer_name: TripletTrainer
+trainer_name: MetricLearningTrainer
 n_epochs: 10
 device: cuda
 wandb: null

@@ -1,4 +1,4 @@
 trainer_name: ClassificationTrainer
 n_epochs: 5
 device: cuda
-wandb: null
+wandb: test123

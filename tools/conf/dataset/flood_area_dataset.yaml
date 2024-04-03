@@ -1,9 +1,5 @@
 dataset_name: FloodAreaSegmentation
-train_path: ../data/flood_area-segmentation/train
-val_path: ../data/flood_area-segmentation/test
 settings:
   batch_size: 16
-  images_path: Image/
-  masks_path: Mask/
-  train_ratio: 0.7
+  data_path: /media/fran/DATA/miquel/ToFu/data/Flood
   labels: ["nowater", "water"]

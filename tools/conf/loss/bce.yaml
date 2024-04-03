@@ -1,1 +1,2 @@
 loss_name: BCELoss
+framework: torch

@@ -2,11 +2,13 @@ from tqdm import tqdm
 from tofu.utils import load_batch_to_device, init_metric_learning_metrics, compute_metric_learning_metrics
 from .base_trainer import BaseTrainer
 import torch
+from tofu.miners import get_miner
 
 
-class TripletTrainer(BaseTrainer):
+class MetricLearningTrainer(BaseTrainer):
     def __init__(self, config):
         super().__init__(config)
+        self.miner = get_miner(config["miner"])
 
     def train_epoch(self, epoch):
         self.model.train()
@@ -19,9 +21,10 @@ class TripletTrainer(BaseTrainer):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
                 # forward
-                feat_im0, feat_im1, feat_im2 = self.model(batch["anchors"], batch["positives"], batch["negatives"])
+                output = self.model(batch["x"])
+                miner_output = self.miner(output, batch["label"].squeeze())
                 # loss
-                loss = self.loss(feat_im0, feat_im1, feat_im2)
+                loss = self.loss(output, batch["label"].squeeze(), miner_output)
                 # backward
                 loss.backward()
                 # optimize
@@ -50,9 +53,10 @@ class TripletTrainer(BaseTrainer):
                 for step, batch in enumerate(tepoch):
                     batch = load_batch_to_device(batch, self.device)
                     # forward
-                    feat_im0, feat_im1, feat_im2 = self.model(batch["anchors"], batch["positives"], batch["negatives"])
+                    output = self.model(batch["x"])
+                    miner_output = self.miner(output, batch["label"].squeeze())
                     # loss
-                    loss = self.loss(feat_im0, feat_im1, feat_im2)
+                    loss = self.loss(output, batch["label"].squeeze(), miner_output)
                     # compute epoch loss
                     running_loss += loss.item()
                     epoch_loss = running_loss / (step + 1)

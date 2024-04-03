@@ -1,12 +1,14 @@
 defaults:
   - _self_
-  - dataset: triplet_mit_dataset
+  - dataset: folder_dataset
+  - miner: triplet_margin_miner
   - loss: triplet_margin_loss
-  - model: triplet
+  - model: resnet18_features
   - optimizer: adam
   - scheduler: onecycle
   - transforms: mytransforms
-  - trainer: triplet_trainer
+  - trainer: metric_learning_trainer
+
   - override hydra/sweeper: optuna
   - override hydra/job_logging: disabled
 

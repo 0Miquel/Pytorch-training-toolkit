@@ -11,12 +11,13 @@ module_names = [name for _, name, _ in pkgutil.walk_packages(package_path)]
 
 def get_scheduler(cfg, optimizer, total_steps):
     scheduler_name = cfg["scheduler_name"]
-    settings = cfg["settings"] if "settings" in cfg.keys() else {}
+    framework = cfg['framework'] if 'framework' in cfg.keys() else None
+    settings = cfg['settings'] if 'settings' in cfg.keys() else {}
 
     if scheduler_name == "OneCycleLR":
         settings["total_steps"] = total_steps
 
-    if hasattr(lr_scheduler, scheduler_name):
+    if framework == 'torch':
         # get lr scheduler from torch.optim.lr_scheduler package
         scheduler = getattr(lr_scheduler, scheduler_name)(optimizer, **settings)
         return scheduler

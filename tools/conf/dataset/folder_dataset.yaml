@@ -1,6 +1,5 @@
 dataset_name: FolderDataset
-train_path: ../data/MIT_split/train
-val_path: ../data/MIT_split/test
 settings:
+  data_path: /media/fran/DATA/miquel/ToFu/data/Numbers
   batch_size: 32
-  labels: ["coast", "forest", "highway", "inside_city", "mountain", "Opencountry", "street", "tallbuilding"]
+  labels: ["0", "1"]

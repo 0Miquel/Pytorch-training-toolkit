@@ -1,6 +1,5 @@
 import importlib
 import pkgutil
-# from .base_trainer import BaseTrainer
 
 # get a list of all submodules of the current package
 package_name = __name__

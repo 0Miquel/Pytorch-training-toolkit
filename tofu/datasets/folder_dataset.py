@@ -36,10 +36,13 @@ class FolderDataset(Dataset):
         # process label
         label = self.gt[idx]
         label_idx = self.labels.index(label)
-        encoded_id = np.zeros(self.num_classes, dtype='float32')
-        encoded_id[label_idx] = 1
+        encoded_label = np.zeros(self.num_classes, dtype='float32')
+        encoded_label[label_idx] = 1
+
+        numeric_label = np.where(encoded_label == 1)[0]
 
         return {
             "x": transformed_img,
-            "y": torch.tensor(encoded_id)
+            "y": torch.tensor(encoded_label),
+            "label": torch.tensor(numeric_label)
         }

@@ -1,1 +1,2 @@
 loss_name: TripletMarginLoss
+framework: pytorch_metric_learning

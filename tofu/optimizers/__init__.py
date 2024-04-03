@@ -11,9 +11,10 @@ module_names = [name for _, name, _ in pkgutil.walk_packages(package_path)]
 
 def get_optimizer(cfg, model):
     optimizer_name = cfg['optimizer_name']
+    framework = cfg['framework'] if 'framework' in cfg.keys() else None
     settings = cfg['settings'] if 'settings' in cfg.keys() else {}
 
-    if hasattr(optim, optimizer_name):
+    if framework == 'torch':
         # get optimizer from torch.optim package
         optimizer = getattr(optim, optimizer_name)(model.parameters(), **settings)
         return optimizer
