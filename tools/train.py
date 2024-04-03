@@ -1,13 +1,12 @@
+import sys
+sys.path.append('../')  # Add the parent directory to the Python path
+
 from src import get_trainer
 import hydra
 from omegaconf import OmegaConf
-import os
-
-# change working directory to be in tools directory
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_generative")
+@hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
     cfg = OmegaConf.to_object(cfg)
     trainer = get_trainer(cfg)
