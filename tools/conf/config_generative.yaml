@@ -1,12 +1,12 @@
 defaults:
   - _self_
-  - dataset: generative_celeb_dataset
+  - dataset: folder_dataset
   - loss: bce
   - model: dcgan
   - optimizer: adam
 #  - scheduler: onecycle
   - transforms: dcgan_transforms
-  - trainer: generative_gan_trainer
+  - trainer: dcgan_trainer
   - override hydra/sweeper: optuna
   - override hydra/job_logging: disabled
 

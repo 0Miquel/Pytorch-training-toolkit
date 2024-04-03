@@ -36,11 +36,11 @@ class DCGANTrainer:
         self.loss = get_loss(config['loss'])
 
         # MODEL
-        netG = get_model(config['model']['generator']).to(self.device)
-        self.netG = torch.compile(netG)
+        self.netG = get_model(config['model']['generator']).to(self.device)
+        # self.netG = torch.compile(self.netG)
         self.netG.apply(weights_init)
-        netD = get_model(config['model']['discriminator']).to(self.device)
-        self.netD = torch.compile(netD)
+        self.netD = get_model(config['model']['discriminator']).to(self.device)
+        # self.netD = torch.compile(self.netD)
         self.netD.apply(weights_init)
 
         # OPTIMIZER
@@ -72,7 +72,7 @@ class DCGANTrainer:
                 ## Train with all-real batch
                 self.netD.zero_grad()
                 # Format batch
-                real_cpu = batch['imgs']
+                real_cpu = batch['x']
                 b_size = real_cpu.size(0)
                 label = torch.full((b_size,), real_label, dtype=torch.float, device=self.device)
                 # Forward pass real batch through D
