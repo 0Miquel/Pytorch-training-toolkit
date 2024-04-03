@@ -5,12 +5,12 @@ from collections import OrderedDict
 
 
 class EmbeddingNetImage(nn.Module):
-    def __init__(self, out_features, pretrained=True):  # dim_out_fc = 'as_image' or 'as_text'
+    def __init__(self, features, pretrained=True):  # dim_out_fc = 'as_image' or 'as_text'
         super(EmbeddingNetImage, self).__init__()
 
         self.model = models.resnet18(pretrained=pretrained)
         in_features = self.model.fc.in_features
-        self.model.fc = nn.Linear(in_features, out_features=out_features)
+        self.model.fc = nn.Linear(in_features, out_features=features)
 
     def forward(self, x):
         output = self.model(x)
@@ -19,9 +19,9 @@ class EmbeddingNetImage(nn.Module):
 
 
 class TripletNet(nn.Module):
-    def __init__(self, settings):
+    def __init__(self, features, pretrained=True):
         super(TripletNet, self).__init__()
-        self.embedding_net_image = EmbeddingNetImage(settings["embedder_size"])
+        self.embedding_net_image = EmbeddingNetImage(features, pretrained)
 
     def forward(self, x1, x2, x3):
         output1 = self.embedding_net_image(x1)

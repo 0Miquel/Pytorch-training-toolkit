@@ -2,11 +2,11 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    def __init__(self, settings):
+    def __init__(self, latent_vector, features, channels):
         super(Generator, self).__init__()
-        nz = settings["latent_vector"]
-        ngf = settings["features"]
-        nc = settings["channels"]
+        nz = latent_vector
+        ngf = features
+        nc = channels
         self.main = nn.Sequential(
             # input is Z, going into a convolution
             nn.ConvTranspose2d(nz, ngf * 8, 4, 1, 0, bias=False),
@@ -30,15 +30,15 @@ class Generator(nn.Module):
             # state size. ``(nc) x 64 x 64``
         )
 
-    def forward(self, input):
-        return self.main(input)
+    def forward(self, x):
+        return self.main(x)
 
 
 class Discriminator(nn.Module):
-    def __init__(self, settings):
+    def __init__(self, features, channels):
         super(Discriminator, self).__init__()
-        ndf = settings["features"]
-        nc = settings["channels"]
+        ndf = features
+        nc = channels
         self.main = nn.Sequential(
             # input is ``(nc) x 64 x 64``
             nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
@@ -60,5 +60,5 @@ class Discriminator(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, input):
-        return self.main(input)
+    def forward(self, x):
+        return self.main(x)
