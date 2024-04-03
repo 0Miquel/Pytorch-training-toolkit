@@ -10,13 +10,11 @@ class GenerativeCelebDataset(Dataset):
     Class for the typical Folder Dataset, where a folder consists of multiple subfolders for every class which
     contains the class images. It does not support any other format like csv file.
     """
-    def __init__(self, data_path, settings, transforms):
+    def __init__(self, data_path, transforms):
         self.data_path = data_path
         self.transforms = transforms
-        self.settings = settings
 
         self.img_paths = glob.glob(self.data_path + "/*")
-        self.img_paths = [path.replace("\\", "/") for path in self.img_paths]  # for Windows
 
     def __len__(self):
         return len(self.img_paths)
@@ -28,7 +26,7 @@ class GenerativeCelebDataset(Dataset):
         transformed_img = self.transforms(image=img)["image"]
 
         return {
-            "imgs": transformed_img
+            "x": transformed_img
         }
 
 

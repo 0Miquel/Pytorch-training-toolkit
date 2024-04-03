@@ -15,7 +15,7 @@ module_names = [name for _, name, _ in pkgutil.walk_packages(package_path)]
 
 def get_dataloaders(cfg_dataset, cfg_transforms):
     dataset_name = cfg_dataset["dataset_name"]
-    settings = cfg_dataset["settings"]
+    settings = cfg_dataset["settings"] if "settings" in cfg_dataset.keys() else {}
     transforms = get_transforms(cfg_transforms)
 
     train_dataset = None

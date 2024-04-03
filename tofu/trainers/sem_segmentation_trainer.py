@@ -21,9 +21,9 @@ class SemSegmentationTrainer(BaseTrainer):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
                 # forward
-                outputs = self.model(batch["imgs"])
+                output = self.model(batch["x"])
                 # loss
-                loss = self.loss(outputs, batch["masks"])
+                loss = self.loss(output, batch["y"])
                 # backward
                 loss.backward()
                 # optimize
@@ -37,6 +37,7 @@ class SemSegmentationTrainer(BaseTrainer):
                 tepoch.set_postfix({"loss": epoch_loss, "lr": current_lr})
 
         if self.logger is not None:
+            self.logger.add_segmentation_table(batch["x"], output, batch["y"], "train")
             self.logger.add({"loss": epoch_loss, "lr": current_lr}, "train")
 
         return epoch_loss
@@ -54,19 +55,19 @@ class SemSegmentationTrainer(BaseTrainer):
                 for step, batch in enumerate(tepoch):
                     batch = load_batch_to_device(batch, self.device)
                     # predict
-                    outputs = self.model(batch["imgs"])
+                    output = self.model(batch["x"])
                     # loss
-                    loss = self.loss(outputs, batch["masks"])
+                    loss = self.loss(output, batch["y"])
                     # compute epoch loss
                     running_loss += loss.item()
                     epoch_loss = running_loss / (step + 1)
                     # compute metrics for this epoch
-                    epoch_metrics = compute_sem_segmentation_metrics(outputs, batch["masks"], metrics)
+                    epoch_metrics = compute_sem_segmentation_metrics(output, batch["y"], metrics)
                     epoch_metrics["loss"] = epoch_loss
                     tepoch.set_postfix(**epoch_metrics)
 
         if self.logger is not None:
-            self.logger.add_segmentation_table(batch["imgs"], outputs, batch["masks"], "val")
-            self.logger.add(metrics, "val")
+            self.logger.add_segmentation_table(batch["x"], output, batch["y"], "val")
+            self.logger.add(epoch_metrics, "val")
 
         return epoch_loss

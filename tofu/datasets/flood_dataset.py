@@ -5,15 +5,18 @@ import os
 
 
 class FloodAreaSegmentation(Dataset):
-    def __init__(self, data_path, settings, transforms):
-        images_path = os.path.join(data_path, settings["images_path"])
-        masks_path = os.path.join(data_path, settings["masks_path"])
+    def __init__(self, train, transforms, data_path, labels, batch_size):
+        if train:
+            self.data_path = os.path.join(data_path, "train")
+        else:
+            self.data_path = os.path.join(data_path, "val")
+        self.batch_size = batch_size
+        self.labels = labels
 
-        img_paths = glob.glob(images_path + "*.jpg")
-        mask_paths = glob.glob(masks_path + "*.png")
-
-        img_paths = [path.replace("\\", "/") for path in img_paths]  # for Windows
-        mask_paths = [path.replace("\\", "/") for path in mask_paths]  # for Windows
+        images_dir = os.path.join(self.data_path, "images")
+        masks_dir = os.path.join(self.data_path, "masks")
+        img_paths = glob.glob(images_dir + "/*.jpg")
+        mask_paths = glob.glob(masks_dir + "/*.png")
 
         self.img_paths = sorted(img_paths, key=lambda x: int(x.split("/")[-1].split(".")[0]))
         self.mask_paths = sorted(mask_paths, key=lambda x: int(x.split("/")[-1].split(".")[0]))
@@ -28,7 +31,6 @@ class FloodAreaSegmentation(Dataset):
         mask_path = self.mask_paths[idx]
 
         img = cv2.imread(img_path)[:, :, ::-1]  # convert it to rgb
-        img = img.astype('float32')
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1
@@ -40,4 +42,7 @@ class FloodAreaSegmentation(Dataset):
         if len(mask.shape) == 2:
             mask = mask[None, ...]
 
-        return {"imgs": transformed_img, "masks": mask}
+        return {
+            "x": transformed_img,
+            "y": mask
+        }

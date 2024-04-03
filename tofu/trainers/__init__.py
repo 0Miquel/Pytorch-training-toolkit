@@ -17,4 +17,4 @@ def get_trainer(cfg=None):
             trainer = getattr(module, trainer_name)(cfg)
             return trainer
 
-    raise f"Trainer with name {trainer_name} not found"
+    raise AttributeError(f"Trainer with name {trainer_name} not found")

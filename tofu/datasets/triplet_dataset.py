@@ -11,7 +11,6 @@ class TripletMITDataset(Dataset):
         self.settings = settings
 
         self.img_paths = glob.glob(self.data_path + "/*/*")
-        self.img_paths = [path.replace("\\", "/") for path in self.img_paths]  # for Windows
         self.labels = [path.split("/")[-2] for path in self.img_paths]
 
         self.id2labels = {i: label for i, label in enumerate(self.settings["labels"])}

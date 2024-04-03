@@ -31,13 +31,11 @@ def create_animation_gif(img_list):
 
 
 def norm_tensor_to_original_im(norm_tensor):
-    inv_normalize = transforms.Normalize(
-        mean=[-0.485/0.229, -0.456/0.224, -0.406/0.255],
-        std=[1/0.229, 1/0.224, 1/0.255]
-    )
-    inv_tensor = inv_normalize(norm_tensor)
-    inv_array = inv_tensor.detach().cpu().numpy().transpose((1, 2, 0))
-    im = (inv_array*255).astype("uint8")
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    norm_array = norm_tensor.detach().cpu().numpy().transpose((1, 2, 0))
+    reverted_img = (norm_array * std + mean) * 255
+    im = reverted_img.astype("uint8")
     return im
 
 

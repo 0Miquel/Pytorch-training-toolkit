@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 from tofu.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger
-from tofu.datasets import get_train_dataloader
+from tofu.datasets import get_dataloaders
 from tofu.losses import get_loss
 from tofu.models import get_model
 from tofu.optimizers import get_optimizer
@@ -29,7 +29,7 @@ class DCGANTrainer:
             self.logger = Logger(config)
 
         # DATASET
-        dataloaders = get_train_dataloader(config['dataset'], config["transforms"])
+        dataloaders = get_dataloaders(config['dataset'], config["transforms"])
         self.train_dl = dataloaders["train"]
 
         # LOSS
