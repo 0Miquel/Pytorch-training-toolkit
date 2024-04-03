@@ -6,12 +6,12 @@ import torchvision.utils as vutils
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from tofu.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger
-from tofu.datasets import get_dataloaders
-from tofu.losses import get_loss
-from tofu.models import get_model
-from tofu.optimizers import get_optimizer
-from tofu.schedulers import get_scheduler
+from src.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger
+from src.datasets import get_dataloaders
+from src.losses import get_loss
+from src.models import get_model
+from src.optimizers import get_optimizer
+from src.schedulers import get_scheduler
 
 import torch
 

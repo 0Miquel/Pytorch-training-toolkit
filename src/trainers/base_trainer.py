@@ -1,9 +1,9 @@
-from tofu.utils import Logger
-from tofu.datasets import get_dataloaders
-from tofu.losses import get_loss
-from tofu.models import get_model
-from tofu.optimizers import get_optimizer
-from tofu.schedulers import get_scheduler
+from src.utils import Logger
+from src.datasets import get_dataloaders
+from src.losses import get_loss
+from src.models import get_model
+from src.optimizers import get_optimizer
+from src.schedulers import get_scheduler
 
 import hydra
 import os

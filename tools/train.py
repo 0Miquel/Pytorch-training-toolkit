@@ -1,4 +1,4 @@
-from tofu import get_trainer
+from src import get_trainer
 import hydra
 from omegaconf import OmegaConf
 import os
@@ -7,7 +7,7 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_metric_learning")
+@hydra.main(version_base=None, config_path="conf", config_name="config_generative")
 def main(cfg):
     cfg = OmegaConf.to_object(cfg)
     trainer = get_trainer(cfg)

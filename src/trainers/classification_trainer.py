@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from tofu.utils import load_batch_to_device, init_classification_metrics, compute_classification_metrics
+from src.utils import load_batch_to_device, init_classification_metrics, compute_classification_metrics
 from .base_trainer import BaseTrainer
 import torch
 

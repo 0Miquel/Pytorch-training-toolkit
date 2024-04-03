@@ -1,5 +1,5 @@
 import wandb
-from tofu.utils import tensors_to_ims, classificiation_table, segmentation_table
+from src.utils import tensors_to_ims, classificiation_table, segmentation_table
 
 
 class Logger:
