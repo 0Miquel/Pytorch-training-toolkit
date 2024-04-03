@@ -1,5 +1,5 @@
 dataset_name: FolderDataset
 settings:
-  data_path: /media/fran/DATA/miquel/ToFu/data/Numbers
+  data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/Numbers
   batch_size: 32
   labels: ["0", "1"]
