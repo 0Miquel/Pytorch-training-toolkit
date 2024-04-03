@@ -13,12 +13,12 @@ existing code.
 - [Train](#train)
 
 ## Frameworks
-Brief introduction to the frameworks that are integrated into the pipeline.
+Brief introduction to the frameworks that are integrated into the toolkit.
 
 ### WandB
 WandB is an experiment tracking tool for machine learning.
 
-Using WandB in the pipeline you will be able to:
+Using WandB in this toolkit you will be able to:
 - Track the hyperparameters and metrics of every run
 - Display the predictions through the different epochs
 - Upload complex media and charts
@@ -28,8 +28,7 @@ For more information visit its [documentation](https://docs.wandb.ai/).
 
 ### Hydra
 Hydra is a framework that simplifies the development of research and other complex applications.
-
-Using Hydra in the pipeline you will be able to have a modular configuration schema in order 
+It makes it possible to have a modular configuration schema in order 
 to build your experiment configurations easier.
 
 The Hydra configuration schema is the following:
