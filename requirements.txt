@@ -8,6 +8,7 @@ matplotlib
 seaborn
 tqdm
 segmentation-models-pytorch
+pytorch_metric_learning
 torch
 torchvision
 torchaudio
