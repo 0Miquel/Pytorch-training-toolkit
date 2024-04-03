@@ -2,4 +2,4 @@ model_name: Resnet18
 settings:
   pretrained: True
   fine_tune: False
-  n_classes: 2
+  n_classes: 10
