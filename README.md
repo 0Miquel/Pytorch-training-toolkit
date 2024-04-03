@@ -1,9 +1,6 @@
-# ToFu
-<img src="media/tofu.png" alt="drawing" width="400"/>
+# Pytorch training toolkit
 
-TorchFusion (ToFu) is a modular pytorch training pipeline.
-
-It integrates the most well-known frameworks for machine learning like WandB for experiment 
+This toolkit integrates the most well-known frameworks for machine learning like WandB for experiment 
 tracking, Hydra for configuration management or Optuna for hyperparameter search.
 
 In addition to that, the code is meant to be fully extensible, it should be possible to
@@ -42,7 +39,7 @@ conf
 ├── config.yaml             # config.yaml calls one .yaml file for 
 ├── dataset                 # every module inside the schema
 │   ├── MNIST.yaml          # the .yaml files inside every module
-│   └── cifar10.yaml        # specify the configuration of that module   
+│   └── cifar10.yaml        # specifies the configuration of that module   
 ├── model                   
 │   ├── resnet.yaml         
 │   └── ...   
@@ -70,15 +67,6 @@ runs with different learning rates.
 python train.py --multirun 'optimizer.settings.lr=choice(0.1, 0.01, 0.001, 0.0001)'
 ```
 For more information on how to create sweepers visit its [documentation](https://hydra.cc/docs/plugins/optuna_sweeper/).
-
-## Installation
-Follow the next command lines to ensure you have ToFu installed.
-```commandline
-git clone https://github.com/0Miquel/ToFu.git
-cd ToFu
-pip install -r requirements.txt
-pip install .
-```
 
 ## Train
 CLI command to run a training experiment.
