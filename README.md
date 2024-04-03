@@ -22,9 +22,8 @@ Using WandB in the pipeline you will be able to:
 - Track the hyperparameters and metrics of every run
 - Display the predictions through the different epochs
 - Upload complex media and charts
-- Save your model as a WandB artifact
 
-For more information on how it works, visit its [documentation](https://docs.wandb.ai/).
+For more information visit its [documentation](https://docs.wandb.ai/).
 
 
 ### Hydra
@@ -45,10 +44,12 @@ conf
 │   └── ...   
 └── ...
 ```
-For more information on how it works, visit its [documentation](https://hydra.cc/docs/intro/).
+For more information visit its [documentation](https://hydra.cc/docs/intro/).
 
 
 ### Optuna
+Optuna is an open source hyperparameter optimization framework to automate hyperparameter search
+
 In order to use Optuna together with Hydra we first need to install the Optuna Sweeper plugin.
 ```commandline
 pip install hydra-optuna-sweeper --upgrade
@@ -61,15 +62,16 @@ defaults:
 Further changes can be added in the config file like the number of runs to execute or
 whether we want to maximize or minimize our objective metric.
 
-To run a sweeper we need to use a command like this one, here we will be executing multiple 
-runs with different learning rates.
+## Installation
+Clone the repository and install the requirements.
 ```commandline
-python train.py --multirun 'optimizer.settings.lr=choice(0.1, 0.01, 0.001, 0.0001)'
+git clone https://github.com/0Miquel/Pytorch-training-toolkit.git
+cd Pytorch-training-toolkit
+pip install -r requirements.txt
 ```
-For more information on how to create sweepers visit its [documentation](https://hydra.cc/docs/plugins/optuna_sweeper/).
 
 ## Train
-CLI command to run a training experiment.
+CLI command to run a training experiment, which runs the configuration found in `config.yaml`.
 ```
 cd tools
 python train.py 
@@ -82,3 +84,8 @@ python train.py optimizer.settings.lr=0.1 trainer.wandb=test_project
 In this case we have changed the default learning rate in the optimizer to 0.1 and
 have set a wandb project name in order to log the results from the experiment,
 if no project name is given it will not log any results into wandb.
+
+Finally, in order to run an Optuna hyperparameter search we can use the following command:
+```commandline
+python train.py --multirun 'optimizer.settings.lr=choice(0.1, 0.01, 0.001, 0.0001)'
+```
