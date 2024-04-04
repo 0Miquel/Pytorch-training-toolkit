@@ -6,7 +6,7 @@ defaults:
   - model: resnet18_features
   - optimizer: adam
   - scheduler: onecycle
-  - transforms: mytransforms
+  - transforms: mnist_transforms
   - trainer: metric_learning_trainer
 
   - override hydra/sweeper: optuna

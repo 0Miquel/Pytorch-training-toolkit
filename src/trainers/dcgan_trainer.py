@@ -6,7 +6,7 @@ import torchvision.utils as vutils
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from src.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger
+from src.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger, save_model
 from src.datasets import get_dataloaders
 from src.losses import get_loss
 from src.models import get_model
@@ -140,8 +140,8 @@ class DCGANTrainer:
 
         for epoch in range(self.n_epochs):
             self.train_epoch(epoch)
-            self.save_model(self.netG, 'last_epoch_generator.pt')
-            self.save_model(self.netD, 'last_epoch_discriminator.pt')
+            save_model(self.netG, 'last_epoch_generator.pt')
+            save_model(self.netD, 'last_epoch_discriminator.pt')
             if self.logger is not None:
                 self.logger.upload()
 
@@ -150,11 +150,3 @@ class DCGANTrainer:
 
         if self.logger is not None:
             self.logger.finish()
-
-    @staticmethod
-    def save_model(model, model_name):
-        outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-        ckpts_dir = os.path.join(outputs_dir, 'ckpts')
-        os.makedirs(ckpts_dir, exist_ok=True)
-        model_path = os.path.join(ckpts_dir, model_name)
-        torch.save(model.state_dict(), model_path)

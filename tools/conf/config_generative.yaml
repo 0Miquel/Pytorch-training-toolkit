@@ -6,7 +6,7 @@ defaults:
   - optimizer: adam
 #  - scheduler: onecycle
   - transforms: dcgan_transforms
-  - trainer: dcgan_trainer
+  - trainer: mnist_transforms
   - override hydra/sweeper: optuna
   - override hydra/job_logging: disabled
 

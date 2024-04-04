@@ -5,7 +5,7 @@ defaults:
   - model: resnet18
   - optimizer: adam
   - scheduler: onecycle
-  - transforms: mytransforms
+  - transforms: mnist_transforms
   - trainer: classification_trainer
 
   - override hydra/job_logging: disabled

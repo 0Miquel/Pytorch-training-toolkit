@@ -5,7 +5,7 @@ defaults:
   - model: unet
   - optimizer: adam
   - scheduler: onecycle
-  - transforms: mytransforms
+  - transforms: flood_transforms
   - trainer: segmentation_trainer
 
   - override hydra/sweeper: optuna

@@ -1,15 +1,12 @@
-from src.utils import Logger
+from src.utils import Logger, save_model
 from src.datasets import get_dataloaders
 from src.losses import get_loss
 from src.models import get_model
 from src.optimizers import get_optimizer
 from src.schedulers import get_scheduler
 
-import hydra
-import os
 import time
 from abc import ABC, abstractmethod
-import torch
 
 
 class BaseTrainer(ABC):
@@ -59,8 +56,8 @@ class BaseTrainer(ABC):
 
             if val_loss < best_loss:
                 best_loss = val_loss
-                self.save_model(self.model, 'best_epoch.pt')
-            self.save_model(self.model, 'last_epoch.pt')
+                save_model(self.model, 'best_epoch.pt')
+            save_model(self.model, 'last_epoch.pt')
 
             if self.logger is not None:
                 self.logger.upload()
@@ -72,11 +69,3 @@ class BaseTrainer(ABC):
             self.logger.finish()
 
         return best_loss
-
-    @staticmethod
-    def save_model(model, model_name):
-        outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-        ckpts_dir = os.path.join(outputs_dir, 'ckpts')
-        os.makedirs(ckpts_dir, exist_ok=True)
-        model_path = os.path.join(ckpts_dir, model_name)
-        torch.save(model.state_dict(), model_path)

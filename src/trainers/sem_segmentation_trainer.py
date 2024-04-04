@@ -1,5 +1,10 @@
 from tqdm import tqdm
-from src.utils import load_batch_to_device, init_sem_segmentation_metrics, compute_sem_segmentation_metrics
+from src.utils import (
+    load_batch_to_device,
+    MetricMonitor,
+    dice_coef,
+    iou_coef
+)
 from .base_trainer import BaseTrainer
 import torch
 
@@ -10,7 +15,7 @@ class SemSegmentationTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         self.model.train()
-        running_loss = 0
+        metric_monitor = MetricMonitor()
 
         # use tqdm to track progress
         with tqdm(self.train_dl, unit="batch") as tepoch:
@@ -31,21 +36,20 @@ class SemSegmentationTrainer(BaseTrainer):
                 if self.scheduler is not None:
                     self.scheduler.step()
                 # compute epoch loss
-                running_loss += loss.item()
-                epoch_loss = running_loss / (step + 1)
-                current_lr = self.optimizer.param_groups[0]['lr']
-                tepoch.set_postfix({"loss": epoch_loss, "lr": current_lr})
+                metric_monitor.update("loss", loss.item())
+                metrics = metric_monitor.get_metrics()
+                metrics["lr"] = self.optimizer.param_groups[0]['lr']
+                tepoch.set_postfix(**metrics)
 
         if self.logger is not None:
             self.logger.add_segmentation_table(batch["x"], output, batch["y"], "train")
-            self.logger.add({"loss": epoch_loss, "lr": current_lr}, "train")
+            self.logger.add(metrics, "train")
 
-        return epoch_loss
+        return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        metrics = init_sem_segmentation_metrics()
-        running_loss = 0
+        metric_monitor = MetricMonitor()
 
         with torch.no_grad():
             # use tqdm to track progress
@@ -59,15 +63,14 @@ class SemSegmentationTrainer(BaseTrainer):
                     # loss
                     loss = self.loss(output, batch["y"])
                     # compute epoch loss
-                    running_loss += loss.item()
-                    epoch_loss = running_loss / (step + 1)
-                    # compute metrics for this epoch
-                    epoch_metrics = compute_sem_segmentation_metrics(output, batch["y"], metrics)
-                    epoch_metrics["loss"] = epoch_loss
-                    tepoch.set_postfix(**epoch_metrics)
+                    metric_monitor.update("loss", loss.item())
+                    metric_monitor.update("dice", dice_coef(batch["y"], output).item())
+                    metric_monitor.update("iou", iou_coef(batch["y"], output).item())
+                    metrics = metric_monitor.get_metrics()
+                    tepoch.set_postfix(**metrics)
 
         if self.logger is not None:
             self.logger.add_segmentation_table(batch["x"], output, batch["y"], "val")
-            self.logger.add(epoch_metrics, "val")
+            self.logger.add(metrics, "val")
 
-        return epoch_loss
+        return metrics["loss"]

@@ -1,5 +1,8 @@
 from tqdm import tqdm
-from src.utils import load_batch_to_device, init_metric_learning_metrics, compute_metric_learning_metrics
+from src.utils import (
+    load_batch_to_device,
+    MetricMonitor
+)
 from .base_trainer import BaseTrainer
 import torch
 from src.miners import get_miner
@@ -12,7 +15,7 @@ class MetricLearningTrainer(BaseTrainer):
 
     def train_epoch(self, epoch):
         self.model.train()
-        running_loss = 0
+        metric_monitor = MetricMonitor()
 
         with tqdm(self.train_dl, unit="batch") as tepoch:
             tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
@@ -32,20 +35,19 @@ class MetricLearningTrainer(BaseTrainer):
                 if self.scheduler is not None:
                     self.scheduler.step()
                 # compute epoch loss
-                running_loss += loss.item()
-                epoch_loss = running_loss / (step + 1)
-                current_lr = self.optimizer.param_groups[0]['lr']
-                tepoch.set_postfix({"loss": epoch_loss, "lr": current_lr})
+                metric_monitor.update("loss", loss.item())
+                metrics = metric_monitor.get_metrics()
+                metrics["lr"] = self.optimizer.param_groups[0]['lr']
+                tepoch.set_postfix(**metrics)
 
         if self.logger is not None:
-            self.logger.add({"loss": epoch_loss, "lr": current_lr}, "train")
+            self.logger.add(metrics, "train")
 
-        return epoch_loss
+        return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
-        metrics = init_metric_learning_metrics()
-        running_loss = 0
+        metric_monitor = MetricMonitor()
 
         with torch.no_grad():
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -58,14 +60,11 @@ class MetricLearningTrainer(BaseTrainer):
                     # loss
                     loss = self.loss(output, batch["label"].squeeze(), miner_output)
                     # compute epoch loss
-                    running_loss += loss.item()
-                    epoch_loss = running_loss / (step + 1)
-                    # compute metrics for this epoch and loss
-                    epoch_metrics = compute_metric_learning_metrics(loss, metrics)
-                    epoch_metrics["loss"] = epoch_loss
-                    tepoch.set_postfix(**epoch_metrics)
+                    metric_monitor.update("loss", loss.item())
+                    metrics = metric_monitor.get_metrics()
+                    tepoch.set_postfix(**metrics)
 
         if self.logger is not None:
             self.logger.add(metrics, "val")
 
-        return epoch_loss
+        return metrics["loss"]

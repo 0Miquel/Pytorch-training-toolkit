@@ -1,50 +1,22 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from collections import defaultdict
 
 
-# CLASSIFICATION #######################################################################################################
-def init_classification_metrics():
-    metrics = {"acc": []}
-    return metrics
+class MetricMonitor:
+    def __init__(self):
+        self.metrics = defaultdict(lambda: {"val": 0, "count": 0, "avg": 0})
 
+    def update(self, metric_name, val):
+        metric = self.metrics[metric_name]
 
-def compute_classification_metrics(outputs, targets, metrics):
-    epoch_metrics = {}
-    # ACCURACY
-    metrics["acc"].append(accuracy(outputs, targets))
-    epoch_metrics["acc"] = np.mean(metrics["acc"])
+        metric["val"] += val
+        metric["count"] += 1
+        metric["avg"] = metric["val"] / metric["count"]
 
-    return epoch_metrics
-
-
-# METRIC LEARNING ######################################################################################################
-def init_metric_learning_metrics():
-    return {}
-
-
-def compute_metric_learning_metrics(loss, metrics):
-    return {}
-
-
-# SEMANTIC SEGMENTATION ################################################################################################
-def init_sem_segmentation_metrics():
-    metrics = {"dice": [], "iou": []}
-    return metrics
-
-
-def compute_sem_segmentation_metrics(outputs, targets, metrics):
-    epoch_metrics = {}
-    # DICE
-    metrics["dice"].append(dice_coef(targets, outputs).cpu().detach().numpy())
-    epoch_metrics["dice"] = np.mean(metrics["dice"])
-    # IOU
-    metrics["iou"].append(iou_coef(targets, outputs).cpu().detach().numpy())
-    epoch_metrics["iou"] = np.mean(metrics["iou"])
-
-    return epoch_metrics
-
-########################################################################################################################
+    def get_metrics(self):
+        return {metric_name: metric["avg"] for metric_name, metric in self.metrics.items()}
 
 
 def accuracy(outputs, targets):

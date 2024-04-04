@@ -1,4 +1,4 @@
 trainer_name: SemSegmentationTrainer
 n_epochs: 10
 device: cuda
-wandb: test123
+wandb: null
