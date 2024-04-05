@@ -28,14 +28,21 @@ def plot_fake_imgs(generator, latent_vector_size):
     device = next(generator.parameters()).device
     fixed_noise = torch.randn(64, latent_vector_size, 1, 1, device=device)
     fake = generator(fixed_noise).detach().cpu()
-    fig = vutils.make_grid(fake, padding=2, normalize=True)
+    # make grid and convert it to numpy
+    fake_np = np.transpose(vutils.make_grid(fake, padding=2, normalize=True).numpy(), (1, 2, 0))
+
+    # Create matplotlib figure and axes
+    fig, ax = plt.subplots(figsize=(8, 8))
+    # Display the image
+    ax.imshow(fake_np)
+    ax.axis('off')  # Hide axes
 
     plt.close('all')
     return fig
 
 
 def plot_segmentation_results(x, y_pred, y_true, thr=0.5):
-    imgs = tensors_to_ims(x)
+    imgs = tensors_to_images(x)
     y_pred = nn.Sigmoid()(y_pred)
 
     fig, axes = plt.subplots(nrows=y_pred.shape[0], ncols=3, figsize=(6, y_pred.shape[0]))
@@ -57,26 +64,26 @@ def plot_segmentation_results(x, y_pred, y_true, thr=0.5):
     return fig
 
 
-def plot_classification_results(inputs, outputs, targets, labels):
-    images = tensors_to_ims(inputs)
-    outputs = nn.Softmax(dim=1)(outputs)
+def plot_classification_results(x, y_pred, y_true, labels):
+    images = tensors_to_images(x)
+    y_pred = nn.Softmax(dim=1)(y_pred)
 
-    fig, ax = plt.subplots(nrows=outputs.shape[0], ncols=2, figsize=(4, outputs.shape[0]))
+    fig, ax = plt.subplots(nrows=y_pred.shape[0], ncols=2, figsize=(4, y_pred.shape[0]))
     fig.tight_layout()
 
-    for i, (img, output, target) in enumerate(zip(images, outputs, targets)):
+    for i, (img, y_pred_, y_true_) in enumerate(zip(images, y_pred, y_true)):
         if i == 0:
             ax[i, 0].set_title("Image")
             ax[i, 1].set_title("Class Probabilities")
 
-        output_label = labels[torch.argmax(output).item()]
-        target_label = labels[torch.argmax(target).item()]
+        output_label = labels[torch.argmax(y_pred_).item()]
+        target_label = labels[torch.argmax(y_true_).item()]
 
-        max_idx = torch.argmax(output)
+        max_idx = torch.argmax(y_pred_)
         bar_colors = ['g' if j == max_idx and output_label == target_label
                       else 'r' if j == max_idx and output_label != target_label else 'b' for j in range(len(labels))]
         ax[i, 0].imshow(img)
-        ax[i, 1].bar(labels, output.cpu().detach().numpy(), color=bar_colors)
+        ax[i, 1].bar(labels, y_pred_.cpu().detach().numpy(), color=bar_colors)
         ax[i, 1].set_ylim(0, 1.0)
         ax[i, 1].tick_params(axis='x', rotation=30)
 
@@ -93,7 +100,7 @@ def norm_tensor_to_original_im(norm_tensor):
     return im
 
 
-def tensors_to_ims(tensor_ims):
+def tensors_to_images(tensor_ims):
     ims = []
     for tensor_im in tensor_ims:
         im = norm_tensor_to_original_im(tensor_im)

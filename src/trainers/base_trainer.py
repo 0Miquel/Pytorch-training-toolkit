@@ -1,4 +1,4 @@
-from src.utils import Logger, save_model
+from src.utils import Logger, save_model, set_random_seed
 from src.datasets import get_dataloaders
 from src.losses import get_loss
 from src.models import get_model
@@ -11,6 +11,8 @@ from abc import ABC, abstractmethod
 
 class BaseTrainer(ABC):
     def __init__(self, config):
+        set_random_seed(42)
+
         self.config = config
         trainer_config = config["trainer"]
         self.n_epochs = trainer_config["n_epochs"]

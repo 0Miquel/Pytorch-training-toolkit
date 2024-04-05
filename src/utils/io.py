@@ -50,10 +50,9 @@ def parse_args():
 
 
 def set_random_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.use_deterministic_algorithms(True)  # Needed for reproducible results
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)

@@ -6,7 +6,15 @@ import torchvision.utils as vutils
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from src.utils import load_batch_to_device, weights_init, plot_fake_imgs, Logger, save_model, MetricMonitor
+from src.utils import (
+    load_batch_to_device,
+    weights_init,
+    plot_fake_imgs,
+    Logger,
+    save_model,
+    MetricMonitor,
+    set_random_seed
+)
 from src.datasets import get_dataloaders
 from src.losses import get_loss
 from src.models import get_model
@@ -18,15 +26,16 @@ import torch
 
 class DCGANTrainer:
     def __init__(self, config):
+        set_random_seed(42)
+
         self.config = config
         trainer_config = config["trainer"]
         self.n_epochs = trainer_config["n_epochs"]
+        self.save_media_epoch = self.n_epochs // 10 if self.n_epochs // 10 > 0 else 1
         self.device = trainer_config["device"]
         self.latent_vector_size = config['model']['generator']["settings"]["latent_vector"]
 
-        self.logger = None
-        if trainer_config["wandb"] is not None:
-            self.logger = Logger(config)
+        self.logger = Logger(config)
 
         # DATASET
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
@@ -125,8 +134,9 @@ class DCGANTrainer:
                 metrics["lrD"] = self.optimizerD.param_groups[0]['lr']
                 tepoch.set_postfix(metrics)
 
-        fake_imgs = plot_fake_imgs(self.netG, self.latent_vector_size)
-        self.logger.add_media({"fake_imgs": fake_imgs})
+        if epoch % self.save_media_epoch == 0:
+            fake_imgs = plot_fake_imgs(self.netG, self.latent_vector_size)
+            self.logger.add_media({"fake_imgs": fake_imgs})
         self.logger.add_metrics(metrics, "train")
 
     def fit(self):

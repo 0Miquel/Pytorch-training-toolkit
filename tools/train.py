@@ -6,7 +6,7 @@ import hydra
 from omegaconf import OmegaConf
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_segmentation")
+@hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
     cfg = OmegaConf.to_object(cfg)
     trainer = get_trainer(cfg)
