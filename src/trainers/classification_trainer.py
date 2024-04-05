@@ -68,7 +68,7 @@ class ClassificationTrainer(BaseTrainer):
 
         if epoch % self.save_media_epoch == 0:
             classification_results = plot_classification_results(batch["x"], output, batch["y"],
-                                                                 self.val_dl.dataset.labels)
+                                                                 self.val_dl.dataset.dataset.labels)
             self.logger.add_media({"classification_results": classification_results})
         self.logger.add_metrics(metrics, "val")
 

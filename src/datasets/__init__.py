@@ -37,8 +37,8 @@ def get_dataloaders(cfg_dataset, cfg_transforms):
         # pre-shuffle validation set, it won't be shuffled in eval phase
         val_indices = list(range(len(val_dataset)))
         np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
-        val_dataset = Subset(val_dataset, val_indices).dataset
-        val_dl = DataLoader(val_dataset, batch_size=val_dataset.batch_size, shuffle=False, drop_last=True)
+        val_dataset = Subset(val_dataset, val_indices)
+        val_dl = DataLoader(val_dataset, batch_size=val_dataset.dataset.batch_size, shuffle=False, drop_last=True)
 
         return {"train": train_dl, "val": val_dl}
 
