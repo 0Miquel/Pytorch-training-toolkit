@@ -6,7 +6,7 @@ import torchvision.utils as vutils
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from src.utils import load_batch_to_device, weights_init, save_fake_imgs, Logger, save_model
+from src.utils import load_batch_to_device, weights_init, plot_fake_imgs, Logger, save_model, MetricMonitor
 from src.datasets import get_dataloaders
 from src.losses import get_loss
 from src.models import get_model
@@ -55,8 +55,7 @@ class DCGANTrainer:
     def train_epoch(self, epoch):
         self.netG.train()
         self.netD.train()
-        running_lossG = 0
-        running_lossD = 0
+        metric_monitor = MetricMonitor()
         # Establish convention for real and fake labels during training
         real_label = 1.
         fake_label = 0.
@@ -95,11 +94,11 @@ class DCGANTrainer:
                 errD_fake.backward()
                 # Compute error of D as sum over the fake and the real batches
                 errD = errD_real + errD_fake
-                # COMPUTE EPOCHS LOSS
-                running_lossD += errD.item()
-                epoch_lossD = running_lossD / (step + 1)
                 # Update D
                 self.optimizerD.step()
+                # Update scheduler
+                if self.schedulerD is not None:
+                    self.schedulerD.step()
 
                 ############################
                 # (2) Update G network: maximize log(D(G(z)))
@@ -112,28 +111,23 @@ class DCGANTrainer:
                 errG = self.loss(output, label)
                 # Calculate gradients for G
                 errG.backward()
-                # COMPUTE EPOCHS LOSS
-                running_lossG += errG.item()
-                epoch_lossG = running_lossG / (step + 1)
                 # Update G
                 self.optimizerG.step()
-
-                # UPDATE SCHEDULERS
-                if self.schedulerD is not None:
-                    self.schedulerD.step()
+                # Update scheduler
                 if self.schedulerG is not None:
                     self.schedulerG.step()
-                # LEARNING RATE
-                current_lrG = self.optimizerG.param_groups[0]['lr']
-                current_lrD = self.optimizerD.param_groups[0]['lr']
-                tepoch.set_postfix({"lossG": epoch_lossG, "lossD": epoch_lossD, "lrG": current_lrG, "lrD": current_lrD})
 
-        fixed_noise = torch.randn(64, self.latent_vector_size, 1, 1, device=self.device)
-        fake = self.netG(fixed_noise).detach().cpu()
-        fake_imgs = vutils.make_grid(fake, padding=2, normalize=True)
-        save_fake_imgs(fake_imgs, epoch)
-        if self.logger is not None:
-            self.logger.add({"lossG": epoch_lossG, "lossD": epoch_lossD, "lrG": current_lrG, "lrD": current_lrD}, "train")
+                # compute epoch metrics and loss
+                metric_monitor.update("lossD", errD.item())
+                metric_monitor.update("lossG", errG.item())
+                metrics = metric_monitor.get_metrics()
+                metrics["lrG"] = self.optimizerG.param_groups[0]['lr']
+                metrics["lrD"] = self.optimizerD.param_groups[0]['lr']
+                tepoch.set_postfix(metrics)
+
+        fake_imgs = plot_fake_imgs(self.netG, self.latent_vector_size)
+        self.logger.add_media({"fake_imgs": fake_imgs})
+        self.logger.add_metrics(metrics, "train")
 
     def fit(self):
         since = time.time()
@@ -143,7 +137,7 @@ class DCGANTrainer:
             save_model(self.netG, 'last_epoch_generator.pt')
             save_model(self.netD, 'last_epoch_discriminator.pt')
             if self.logger is not None:
-                self.logger.upload()
+                self.logger.upload(epoch)
 
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))

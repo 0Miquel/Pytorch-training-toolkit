@@ -1,7 +1,8 @@
 from tqdm import tqdm
 from src.utils import (
     load_batch_to_device,
-    MetricMonitor
+    MetricMonitor,
+    plot_umap
 )
 from .base_trainer import BaseTrainer
 import torch
@@ -34,20 +35,21 @@ class MetricLearningTrainer(BaseTrainer):
                 self.optimizer.step()
                 if self.scheduler is not None:
                     self.scheduler.step()
-                # compute epoch loss
+                # compute epoch metrics and loss
                 metric_monitor.update("loss", loss.item())
                 metrics = metric_monitor.get_metrics()
                 metrics["lr"] = self.optimizer.param_groups[0]['lr']
                 tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add(metrics, "train")
+        self.logger.add_metrics(metrics, "train")
 
         return metrics["loss"]
 
     def val_epoch(self, epoch):
         self.model.eval()
         metric_monitor = MetricMonitor()
+        outputs = []
+        labels = []
 
         with torch.no_grad():
             with tqdm(self.val_dl, unit="batch") as tepoch:
@@ -59,12 +61,17 @@ class MetricLearningTrainer(BaseTrainer):
                     miner_output = self.miner(output, batch["label"].squeeze())
                     # loss
                     loss = self.loss(output, batch["label"].squeeze(), miner_output)
-                    # compute epoch loss
+                    # compute epoch metrics and loss
                     metric_monitor.update("loss", loss.item())
                     metrics = metric_monitor.get_metrics()
                     tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add(metrics, "val")
+                    outputs.append(output)
+                    labels.append(batch["label"].squeeze())
+
+        if epoch % self.save_media_epoch == 0:
+            umap_results = plot_umap(outputs, labels)
+            self.logger.add_media({"umap": umap_results})
+        self.logger.add_metrics(metrics, "val")
 
         return metrics["loss"]

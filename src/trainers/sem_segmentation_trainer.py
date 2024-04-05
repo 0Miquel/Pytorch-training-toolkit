@@ -3,7 +3,8 @@ from src.utils import (
     load_batch_to_device,
     MetricMonitor,
     dice_coef,
-    iou_coef
+    iou_coef,
+    plot_segmentation_results
 )
 from .base_trainer import BaseTrainer
 import torch
@@ -41,9 +42,7 @@ class SemSegmentationTrainer(BaseTrainer):
                 metrics["lr"] = self.optimizer.param_groups[0]['lr']
                 tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add_segmentation_table(batch["x"], output, batch["y"], "train")
-            self.logger.add(metrics, "train")
+        self.logger.add_metrics(metrics, "train")
 
         return metrics["loss"]
 
@@ -69,8 +68,10 @@ class SemSegmentationTrainer(BaseTrainer):
                     metrics = metric_monitor.get_metrics()
                     tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add_segmentation_table(batch["x"], output, batch["y"], "val")
-            self.logger.add(metrics, "val")
+        # save media and metrics
+        if epoch % self.save_media_epoch == 0:
+            segmentation_results = plot_segmentation_results(batch["x"], output, batch["y"])
+            self.logger.add_media({"segmentation_results": segmentation_results})
+        self.logger.add_metrics(metrics, "val")
 
         return metrics["loss"]

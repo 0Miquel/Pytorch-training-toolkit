@@ -33,12 +33,12 @@ def get_dataloaders(cfg_dataset, cfg_transforms):
     if train_dataset is None or val_dataset is None:
         raise AttributeError(f"Dataset with name {dataset_name} not found")
     else:
-        train_dl = DataLoader(train_dataset, batch_size=train_dataset.batch_size, shuffle=True)
+        train_dl = DataLoader(train_dataset, batch_size=train_dataset.batch_size, shuffle=True, drop_last=True)
         # pre-shuffle validation set, it won't be shuffled in eval phase
         val_indices = list(range(len(val_dataset)))
         np.random.shuffle(val_indices)  # Create a fixed permutation of validation indices
         val_dataset = Subset(val_dataset, val_indices).dataset
-        val_dl = DataLoader(val_dataset, batch_size=val_dataset.batch_size, shuffle=False)
+        val_dl = DataLoader(val_dataset, batch_size=val_dataset.batch_size, shuffle=False, drop_last=True)
 
         return {"train": train_dl, "val": val_dl}
 

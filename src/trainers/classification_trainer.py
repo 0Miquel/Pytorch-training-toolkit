@@ -2,7 +2,8 @@ from tqdm import tqdm
 from src.utils import (
     load_batch_to_device,
     MetricMonitor,
-    accuracy
+    accuracy,
+    plot_classification_results
 )
 from .base_trainer import BaseTrainer
 import torch
@@ -40,9 +41,7 @@ class ClassificationTrainer(BaseTrainer):
                 metrics["lr"] = self.optimizer.param_groups[0]['lr']
                 tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add_classification_table(batch["x"], output, batch["y"], "train")
-            self.logger.add(metrics, "train")
+        self.logger.add_metrics(metrics, "train")
 
         return metrics["loss"]
 
@@ -67,8 +66,10 @@ class ClassificationTrainer(BaseTrainer):
                     metrics = metric_monitor.get_metrics()
                     tepoch.set_postfix(**metrics)
 
-        if self.logger is not None:
-            self.logger.add_classification_table(batch["x"], output, batch["y"], "val")
-            self.logger.add(metrics, "val")
+        if epoch % self.save_media_epoch == 0:
+            classification_results = plot_classification_results(batch["x"], output, batch["y"],
+                                                                 self.val_dl.dataset.labels)
+            self.logger.add_media({"classification_results": classification_results})
+        self.logger.add_metrics(metrics, "val")
 
         return metrics["loss"]

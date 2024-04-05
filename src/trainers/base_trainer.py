@@ -14,11 +14,10 @@ class BaseTrainer(ABC):
         self.config = config
         trainer_config = config["trainer"]
         self.n_epochs = trainer_config["n_epochs"]
+        self.save_media_epoch = self.n_epochs // 10 if self.n_epochs // 10 > 0 else 1
         self.device = trainer_config["device"]
 
-        self.logger = None
-        if trainer_config["wandb"] is not None:
-            self.logger = Logger(config)
+        self.logger = Logger(config)
 
         # DATASET
         dataloaders = get_dataloaders(config['dataset'], config["transforms"])
@@ -60,7 +59,7 @@ class BaseTrainer(ABC):
             save_model(self.model, 'last_epoch.pt')
 
             if self.logger is not None:
-                self.logger.upload()
+                self.logger.upload(epoch)
 
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
