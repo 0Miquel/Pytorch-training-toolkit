@@ -1,10 +1,11 @@
 import wandb
+import time
 from src.utils import save_figure
 
 
 class Logger:
     def __init__(self, cfg):
-        self.logs = {}
+        self.start_time = time.time()
         self.cfg = cfg
         if self.cfg["trainer"]["wandb"] is not None:
             self.project_name = self.cfg["trainer"]["wandb"]
@@ -12,42 +13,42 @@ class Logger:
         else:
             self.project_name = None
 
-    def add_metrics(self, metrics, phase):
-        for metric_name, metric_value in metrics.items():
-            self.logs[phase+"/"+metric_name] = metric_value
+    def upload_metrics(self, train_metrics, val_metrics, epoch):
+        logs = {"epoch": epoch}
+        for metric_name, metric in train_metrics.items():
+            logs["train/"+metric_name] = metric
+        for metric_name, metric in val_metrics.items():
+            logs["val/"+metric_name] = metric
 
-    def add_media(self, figures):
-        for figure_name, figure in figures.items():
-            self.logs["media/"+figure_name] = figure
-
-    def upload(self, epoch):
-        self.logs["epoch"] = epoch
-        # log to wandb (both metrics and media)
-        if self.project_name is not None:
-            self.wandb_log()
-        # save media locally
-        self.save_media()
         # save metrics locally
-        self.save_metrics()
+        self.save_metrics(logs)
 
-    def wandb_log(self):
-        wandb_logs = self.logs.copy()
-        for key, value in wandb_logs.items():
-            if "media" in key:
-                # convert to wandb.Image if it is media
-                wandb_logs[key] = wandb.Image(value)
-        wandb.log(self.logs)
+        # log to wandb
+        if self.project_name is not None:
+            wandb.log(logs)
 
-    def save_media(self):
-        epoch = self.logs["epoch"]
-        for key, value in self.logs.items():
-            if "media" in key:
-                figure_name = key.split("/")[1] + f"_epoch_{epoch}.png"
-                save_figure(value, figure_name)
+    def upload_media(self, figures):
+        # save metrics locally
+        self.save_media(figures)
 
-    def save_metrics(self):
+        # log to wandb
+        if self.project_name is not None:
+            wandb_logs = {}
+            for figure_name, figure in figures.items():
+                wandb_logs["media/"+figure_name] = wandb.Image(figure)
+            wandb.log(wandb_logs)
+
+    def save_media(self, figures):
+        for figure_name, figure in figures.items():
+            figure_name = figure_name + ".png"
+            save_figure(figure, figure_name)
+
+    def save_metrics(self, logs):
         pass
 
     def finish(self):
+        time_elapsed = time.time() - self.start_time
+        print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
         if self.project_name is not None:
             self.run.finish()

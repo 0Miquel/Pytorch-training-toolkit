@@ -11,7 +11,6 @@ from src.utils import (
     weights_init,
     plot_fake_imgs,
     Logger,
-    save_model,
     MetricMonitor,
     set_random_seed
 )

@@ -8,14 +8,6 @@ import os
 import hydra
 
 
-def save_model(model, model_name):
-    outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    ckpts_dir = os.path.join(outputs_dir, 'ckpts')
-    os.makedirs(ckpts_dir, exist_ok=True)
-    model_path = os.path.join(ckpts_dir, model_name)
-    torch.save(model.state_dict(), model_path)
-
-
 def save_figure(figure, figure_name):
     outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     figs_dir = os.path.join(outputs_dir, 'figs')

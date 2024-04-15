@@ -1,12 +1,12 @@
-from tqdm import tqdm
 from src.utils import (
-    load_batch_to_device,
     MetricMonitor,
-    plot_umap
+    plot_umap,
+    load_batch_to_device
 )
 from .base_trainer import BaseTrainer
-import torch
 from src.miners import get_miner
+from matplotlib.figure import Figure
+from typing import Dict
 
 
 class MetricLearningTrainer(BaseTrainer):
@@ -14,64 +14,24 @@ class MetricLearningTrainer(BaseTrainer):
         super().__init__(config)
         self.miner = get_miner(config["miner"])
 
-    def train_epoch(self, epoch):
-        self.model.train()
-        metric_monitor = MetricMonitor()
-
-        with tqdm(self.train_dl, unit="batch") as tepoch:
-            tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} train")
-            for step, batch in enumerate(tepoch):
-                batch = load_batch_to_device(batch, self.device)
-                # zero the parameter gradients
-                self.optimizer.zero_grad()
-                # forward
-                output = self.model(batch["x"])
-                miner_output = self.miner(output, batch["label"].squeeze())
-                # loss
-                loss = self.loss(output, batch["label"].squeeze(), miner_output)
-                # backward
-                loss.backward()
-                # optimize
-                self.optimizer.step()
-                if self.scheduler is not None:
-                    self.scheduler.step()
-                # compute epoch metrics and loss
-                metric_monitor.update("loss", loss.item())
-                metrics = metric_monitor.get_metrics()
-                metrics["lr"] = self.optimizer.param_groups[0]['lr']
-                tepoch.set_postfix(**metrics)
-
-        self.logger.add_metrics(metrics, "train")
-
-        return metrics["loss"]
-
-    def val_epoch(self, epoch):
+    def generate_media(self) -> Dict[str, Figure]:
+        """
+        Generate media from output and sample.
+        """
         self.model.eval()
-        metric_monitor = MetricMonitor()
         outputs = []
         labels = []
 
-        with torch.no_grad():
-            with tqdm(self.val_dl, unit="batch") as tepoch:
-                tepoch.set_description(f"Epoch {epoch + 1}/{self.n_epochs} val")
-                for step, batch in enumerate(tepoch):
-                    batch = load_batch_to_device(batch, self.device)
-                    # forward
-                    output = self.model(batch["x"])
-                    miner_output = self.miner(output, batch["label"].squeeze())
-                    # loss
-                    loss = self.loss(output, batch["label"].squeeze(), miner_output)
-                    # compute epoch metrics and loss
-                    metric_monitor.update("loss", loss.item())
-                    metrics = metric_monitor.get_metrics()
-                    tepoch.set_postfix(**metrics)
+        for step, batch in enumerate(self.val_dl):
+            batch = load_batch_to_device(batch, self.device)
+            # forward
+            output = self.model(batch["x"])
+            outputs.append(output)
+            labels.append(batch["label"].squeeze())
 
-                    outputs.append(output)
-                    labels.append(batch["label"].squeeze())
+        umap_results = plot_umap(outputs, labels)
+        return {"umap": umap_results}
 
-        if epoch % self.save_media_epoch == 0:
-            umap_results = plot_umap(outputs, labels)
-            self.logger.add_media({"umap": umap_results})
-        self.logger.add_metrics(metrics, "val")
-
-        return metrics["loss"]
+    def compute_loss(self, output, sample):
+        miner_tuples = self.miner(output, sample["label"].squeeze())
+        return self.loss(output, sample["label"].squeeze(), miner_tuples)

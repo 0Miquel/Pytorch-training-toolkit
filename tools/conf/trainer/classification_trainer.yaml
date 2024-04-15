@@ -2,3 +2,8 @@ trainer_name: ClassificationTrainer
 n_epochs: 5
 device: cuda
 wandb: null
+callbacks:
+  on_epoch_end:
+    EarlyStopping:
+      patience: 3
+      monitor: loss
