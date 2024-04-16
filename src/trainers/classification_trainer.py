@@ -24,5 +24,5 @@ class ClassificationTrainer(BaseTrainer):
         sample = load_batch_to_device(sample, self.device)
         output = self.predict(self.model, sample)
         classification_results = plot_classification_results(sample["x"], output, sample["y"],
-                                                             self.val_dl.dataset.dataset.labels)
+                                                             self.val_dl.dataset.labels)
         return {"classification_results": classification_results}
