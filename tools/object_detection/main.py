@@ -24,7 +24,7 @@ def main(config: Configuration) -> None:
     # transforms
     transforms_train = A.Compose([
         A.Resize(width=224, height=224),
-        A.HorizontalFlip(p=0.5),
+        # A.HorizontalFlip(p=0.5),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ToTensorV2(),
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=["labels"]))

@@ -10,6 +10,8 @@ class Configuration:
 
     patience: int = field(default=10000)
     min_delta: float = field(default=0.0)
+    max_mode: bool = field(default=False)
+    monitor: str = field(default="loss")
 
     pretrained: bool = field(default=True)
     fine_tune: bool = field(default=True)

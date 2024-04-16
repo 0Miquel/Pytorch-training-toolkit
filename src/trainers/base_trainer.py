@@ -29,9 +29,13 @@ class BaseTrainer:
         self.config = config
         self.n_epochs = config.n_epochs
         self.device = config.device
-        self.early_stopping = EarlyStopping(patience=config.patience,
-                                            min_delta=config.min_delta)
-        self.model_checkpoint = ModelCheckpoint()
+        self.early_stopping = EarlyStopping(
+            patience=config.patience,
+            min_delta=config.min_delta,
+            monitor=config.monitor,
+            max_mode=config.max_mode
+        )
+        self.model_checkpoint = ModelCheckpoint(monitor=config.monitor, max_mode=config.max_mode)
         self.logger = Logger(config)
 
         # DATASET
@@ -112,8 +116,8 @@ class BaseTrainer:
             self.logger.upload_metrics(train_metrics, val_metrics, epoch)
 
             # save model and early stop callbacks
-            self.model_checkpoint(self.model, val_metrics["loss"])
-            early_stop = self.early_stopping(epoch, val_metrics["loss"])
+            self.model_checkpoint(self.model, val_metrics)
+            early_stop = self.early_stopping(epoch, val_metrics)
             if early_stop:
                 break
 
