@@ -128,6 +128,8 @@ class BaseTrainer:
         return model(sample["x"])
 
     def compute_loss(self, output, sample):
+        if self.loss is None:
+            raise RuntimeError("`criterion` should not be None.")
         return self.loss(output, sample["y"])
 
     def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:

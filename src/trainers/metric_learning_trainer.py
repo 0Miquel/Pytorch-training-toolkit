@@ -14,10 +14,10 @@ class MetricLearningTrainer(BaseTrainer):
             config,
             train_dl,
             val_dl,
-            criterion,
             model,
             optimizer,
-            miner,
+            miner=None,
+            criterion=None,
             scheduler=None
     ):
         super().__init__(
@@ -50,5 +50,12 @@ class MetricLearningTrainer(BaseTrainer):
         return {"umap": umap_results}
 
     def compute_loss(self, output, sample):
-        miner_tuples = self.miner(output, sample["label"].squeeze())
-        return self.loss(output, sample["label"].squeeze(), miner_tuples)
+        if self.loss is None:
+            raise RuntimeError("`criterion` should not be None.")
+
+        if self.miner is None:
+            return self.loss(output, sample["label"].squeeze())
+        else:
+            miner_tuples = self.miner(output, sample["label"].squeeze())
+            return self.loss(output, sample["label"].squeeze(), miner_tuples)
+
