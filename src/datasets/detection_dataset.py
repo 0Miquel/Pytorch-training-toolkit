@@ -5,31 +5,18 @@ import torch
 import numpy as np
 import os
 from xml.etree import ElementTree as et
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 
 
 # the dataset class
 class DetectionDataset(Dataset):
-    def __init__(self, train, data_path, classes, batch_size, transforms=None):
+    def __init__(self, train, data_path, labels, transforms):
         if train:
             self.dir_path = data_path + "/train"
-            self.transforms = A.Compose([
-                A.Resize(width=224, height=224),
-                A.HorizontalFlip(p=0.5),
-                A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-                ToTensorV2(),
-            ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=["labels"]))
         else:
             self.dir_path = data_path + "/val"
-            self.transforms = A.Compose([
-                A.Resize(width=224, height=224),
-                A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-                ToTensorV2(),
-            ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=["labels"]))
 
-        self.batch_size = batch_size
-        self.classes = classes
+        self.transforms = transforms
+        self.labels = labels
 
         # get all the image paths in sorted order
         self.image_paths = glob.glob(f"{self.dir_path}/*.jpg")
@@ -55,7 +42,7 @@ class DetectionDataset(Dataset):
         for member in root.findall('object'):
             # map the current object name to `classes` list to get...
             # ... the label index and append to `labels` list
-            labels.append(self.classes.index(member.find('name').text))
+            labels.append(self.labels.index(member.find('name').text))
             # xmin = left corner x-coordinates
             xmin = int(member.find('bndbox').find('xmin').text)
             # xmax = right corner x-coordinates
@@ -76,7 +63,20 @@ class DetectionDataset(Dataset):
             'labels': torch.as_tensor(sample['labels'], dtype=torch.int64)
         }
 
-        return target
+        return {"x": input_image, "boxes": target["boxes"], "labels": target["labels"]}
 
     def __len__(self):
         return len(self.all_images)
+
+    def collate_fn(self, data):
+        images = []
+        target = []
+
+        for sample in data:
+            images.append(sample["x"])
+            target.append({"boxes": sample["boxes"], "labels": sample["labels"]})
+
+        images = torch.stack(images, dim=0)
+
+        return {"x": images, "y": target}
+

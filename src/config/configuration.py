@@ -21,3 +21,5 @@ class Configuration:
 
     device: str = field(default='cuda')
     wandb: Optional[str] = field(default=None)
+
+    loss_computed_by_model: bool = field(default=False)

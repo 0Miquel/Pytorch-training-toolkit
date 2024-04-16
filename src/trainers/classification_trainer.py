@@ -1,9 +1,8 @@
 from src.utils import (
-    MetricMonitor,
-    accuracy,
     load_batch_to_device,
     plot_classification_results
 )
+from src.metrics import MetricMonitor, accuracy
 from .base_trainer import BaseTrainer
 from matplotlib.figure import Figure
 from typing import Dict

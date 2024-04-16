@@ -23,10 +23,23 @@ def load_yaml_config(path):
 
 
 def load_batch_to_device(batch, device):
-    for key, value in batch.items():
-        if isinstance(value, torch.Tensor):
-            batch[key] = value.to(device)
-    return batch
+    """
+    Load batch to device recursively in case it finds a list or dictionary in such batch of data,
+    """
+    if isinstance(batch, torch.Tensor):
+        return batch.to(device)
+    elif isinstance(batch, dict):
+        new_batch = {}
+        for key, value in batch.items():
+            new_batch[key] = load_batch_to_device(value, device)
+        return new_batch
+    elif isinstance(batch, list):
+        new_batch = []
+        for item in batch:
+            new_batch.append(load_batch_to_device(item, device))
+        return new_batch
+    else:
+        return batch
 
 
 def parse_args():

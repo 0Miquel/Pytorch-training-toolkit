@@ -19,9 +19,9 @@ class BaseTrainer:
             config,
             train_dl,
             val_dl,
-            criterion,
             model,
             optimizer,
+            criterion=None,
             scheduler=None
     ):
         set_random_seed(42)
@@ -93,9 +93,10 @@ class BaseTrainer:
                 # predict
                 output = self.predict(self.model, batch)
                 # loss
-                loss = self.compute_loss(output, batch)
-                # update metrics and loss
-                metric_monitor.update("loss", loss.item())
+                if self.loss is not None:
+                    loss = self.compute_loss(output, batch)
+                    # update metrics and loss
+                    metric_monitor.update("loss", loss.item())
                 self.compute_metrics(metric_monitor, output, batch)
                 metrics = metric_monitor.get_metrics()
                 tepoch.set_postfix(**metrics)
@@ -129,7 +130,7 @@ class BaseTrainer:
     def compute_loss(self, output, sample):
         return self.loss(output, sample["y"])
 
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> dict:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
         """
         Update metric_monitor with the metrics computed from output and sample.
         """

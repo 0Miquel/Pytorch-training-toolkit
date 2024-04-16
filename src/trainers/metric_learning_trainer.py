@@ -1,8 +1,8 @@
 from src.utils import (
-    MetricMonitor,
     plot_umap,
     load_batch_to_device
 )
+from src.metrics import MetricMonitor
 from .base_trainer import BaseTrainer
 from matplotlib.figure import Figure
 from typing import Dict

@@ -1,22 +1,21 @@
 import hydra
 import torch
+import torch.nn as nn
 from hydra.core.config_store import ConfigStore
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from pytorch_metric_learning.losses import TripletMarginLoss
-from pytorch_metric_learning.miners import TripletMarginMiner
 
 from src.config import Configuration
 from src.datasets import FolderDataset
 from src.models import Resnet18
-from src.trainers import MetricLearningTrainer
+from src.trainers import ClassificationTrainer
 
 cs = ConfigStore.instance()
 # Registering the Config class with the name 'config'.
-cs.store(name="config_metric_learning", node=Configuration)
+cs.store(name="config", node=Configuration)
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="config_metric_learning.yaml")
+@hydra.main(version_base=None, config_path=".", config_name="config.yaml")
 def main(config: Configuration) -> None:
     # transforms
     transforms_train = A.Compose([
@@ -45,10 +44,7 @@ def main(config: Configuration) -> None:
     model = Resnet18(pretrained=config.pretrained, fine_tune=config.fine_tune, n_classes=config.n_classes)
 
     # create the loss function
-    criterion = TripletMarginLoss()
-
-    # create the miner function
-    miner = TripletMarginMiner()
+    criterion = nn.CrossEntropyLoss()
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
@@ -56,14 +52,13 @@ def main(config: Configuration) -> None:
                                                     total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
-    trainer = MetricLearningTrainer(
+    trainer = ClassificationTrainer(
         config=config,
         train_dl=train_dl,
         val_dl=val_dl,
         criterion=criterion,
         model=model,
         optimizer=optimizer,
-        miner=miner,
         scheduler=scheduler
     )
 
