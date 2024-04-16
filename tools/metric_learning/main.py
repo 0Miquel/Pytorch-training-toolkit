@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../../')
+
 import hydra
 import torch
 from hydra.core.config_store import ConfigStore

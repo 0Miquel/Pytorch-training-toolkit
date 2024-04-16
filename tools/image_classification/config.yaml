@@ -5,3 +5,16 @@ lr: 1e-3
 
 labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 n_classes: 10
+
+
+defaults:
+  - _self_
+  - override hydra/sweeper: optuna
+
+hydra:
+  sweeper:
+    direction: "minimize"
+    study_name: null
+    storage: null
+    n_trials: 20
+    n_jobs: 2
