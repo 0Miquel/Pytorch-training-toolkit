@@ -4,12 +4,15 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 
 class FasterRCNN(nn.Module):
-    def __init__(self, settings):
+    def __init__(self, n_classes, pretrained=True):
         super(FasterRCNN, self).__init__()
-        self.model = models.detection.fasterrcnn_resnet50_fpn(pretrained=settings["pretrained"])
+        self.model = models.detection.fasterrcnn_resnet50_fpn(pretrained=pretrained)
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, settings["n_classes"])
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, n_classes)
 
-    def forward(self, x):
-        x = self.model(x)
+    def forward(self, x, targets=None):
+        if targets is None:
+            x = self.model(x)
+        else:
+            x = self.model(x, targets)
         return x

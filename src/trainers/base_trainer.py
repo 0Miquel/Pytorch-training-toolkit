@@ -1,3 +1,8 @@
+from tqdm import tqdm
+import torch
+from typing import Dict
+from matplotlib.figure import Figure
+
 from src.utils import (
     load_batch_to_device,
     MetricMonitor,
@@ -6,48 +11,43 @@ from src.utils import (
     ModelCheckpoint,
     set_random_seed
 )
-from src.datasets import get_dataloaders
-from src.losses import get_loss
-from src.models import get_model
-from src.optimizers import get_optimizer
-from src.schedulers import get_scheduler
-from tqdm import tqdm
-import torch
-from typing import Dict
-from matplotlib.figure import Figure
 
 
 class BaseTrainer:
-    def __init__(self, config):
+    def __init__(
+            self,
+            config,
+            train_dl,
+            val_dl,
+            criterion,
+            model,
+            optimizer,
+            scheduler=None
+    ):
         set_random_seed(42)
 
         self.config = config
-        trainer_config = config["trainer"]
-        self.n_epochs = trainer_config["n_epochs"]
-        self.save_media_epoch = self.n_epochs // 10 if self.n_epochs // 10 > 0 else 1
-        self.device = trainer_config["device"]
-        self.early_stopping = EarlyStopping(patience=trainer_config.get("patience", 10000),
-                                            min_delta=trainer_config.get("min_delta", 0.0))
+        self.n_epochs = config.n_epochs
+        self.device = config.device
+        self.early_stopping = EarlyStopping(patience=config.patience,
+                                            min_delta=config.min_delta)
         self.model_checkpoint = ModelCheckpoint()
         self.logger = Logger(config)
 
         # DATASET
-        dataloaders = get_dataloaders(config['dataset'], config["transforms"])
-        self.train_dl = dataloaders["train"]
-        self.val_dl = dataloaders["val"]
+        self.train_dl = train_dl
+        self.val_dl = val_dl
 
         # LOSS
-        self.loss = get_loss(config['loss'])
+        self.loss = criterion
 
         # MODEL
-        self.model = get_model(config['model']).to(self.device)
+        self.model = model.to(self.device)
         # self.model = torch.compile(self.model)
 
         # OPTIMIZER
-        self.optimizer = get_optimizer(config['optimizer'], self.model)
-        total_steps = len(self.train_dl) * self.n_epochs
-        self.scheduler = get_scheduler(config['scheduler'], self.optimizer, total_steps) \
-            if "scheduler" in config.keys() else None
+        self.optimizer = optimizer
+        self.scheduler = scheduler
 
     def train_epoch(self, epoch):
         self.model.train()

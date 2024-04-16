@@ -1,5 +1,7 @@
 import wandb
 import time
+from omegaconf import OmegaConf
+
 from src.utils import save_figure
 
 
@@ -7,9 +9,10 @@ class Logger:
     def __init__(self, cfg):
         self.start_time = time.time()
         self.cfg = cfg
-        if self.cfg["trainer"]["wandb"] is not None:
-            self.project_name = self.cfg["trainer"]["wandb"]
-            self.run = wandb.init(project=self.project_name, config=cfg)
+        if self.cfg.wandb is not None:
+            self.project_name = self.cfg.wandb
+            cfg_dict = object_to_dict(OmegaConf.to_object(cfg))
+            self.run = wandb.init(project=self.project_name, config=cfg_dict)
         else:
             self.project_name = None
 
@@ -52,3 +55,14 @@ class Logger:
 
         if self.project_name is not None:
             self.run.finish()
+
+
+def object_to_dict(obj):
+    # Get all attributes of the object
+    attributes = vars(obj)
+    # Create a dictionary to store attribute names and values
+    attributes_dict = {}
+    # Iterate over attributes and add them to the dictionary
+    for attr_name, attr_value in attributes.items():
+        attributes_dict[attr_name] = attr_value
+    return attributes_dict

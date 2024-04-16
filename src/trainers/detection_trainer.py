@@ -19,8 +19,9 @@ class DetectionTrainer(BaseTrainer):
 
     def compute_loss(self, output, sample):
         if self.loss_computed_by_model:
-            # TODO: implement loss computed by model
-            pass
+            if isinstance(output, dict):
+                return None
+            return None
         return self.loss(output, sample["y"])
 
     def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> dict:

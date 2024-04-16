@@ -4,15 +4,32 @@ from src.utils import (
     load_batch_to_device
 )
 from .base_trainer import BaseTrainer
-from src.miners import get_miner
 from matplotlib.figure import Figure
 from typing import Dict
 
 
 class MetricLearningTrainer(BaseTrainer):
-    def __init__(self, config):
-        super().__init__(config)
-        self.miner = get_miner(config["miner"])
+    def __init__(
+            self,
+            config,
+            train_dl,
+            val_dl,
+            criterion,
+            model,
+            optimizer,
+            miner,
+            scheduler=None
+    ):
+        super().__init__(
+            config=config,
+            train_dl=train_dl,
+            val_dl=val_dl,
+            criterion=criterion,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler
+        )
+        self.miner = miner
 
     def generate_media(self) -> Dict[str, Figure]:
         """

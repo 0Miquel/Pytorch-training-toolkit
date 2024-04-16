@@ -1,7 +1,0 @@
-defaults:
-  - dataset: car_detection_dataset
-  - model: fasterrcnn
-  - optimizer: adam
-  - scheduler: onecycle
-  - transforms: mytransforms
-  - trainer: detection_trainer

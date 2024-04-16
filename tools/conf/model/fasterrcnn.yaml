@@ -1,4 +1,0 @@
-model_name: FasterRCNN
-settings:
-  pretrained: True
-  n_classes: 1

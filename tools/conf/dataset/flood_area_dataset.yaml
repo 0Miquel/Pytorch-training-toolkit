@@ -1,5 +1,0 @@
-dataset_name: FloodAreaSegmentation
-settings:
-  batch_size: 16
-  data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/Flood
-  labels: ["nowater", "water"]

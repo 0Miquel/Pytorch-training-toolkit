@@ -1,0 +1,6 @@
+data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/Flood
+batch_size: 16
+n_epochs: 10
+
+labels: ["nowater", "water"]
+n_classes: 1

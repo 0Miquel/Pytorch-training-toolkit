@@ -1,6 +1,0 @@
-optimizer_name: Adam
-framework: torch
-settings:
-  lr: 0.0002
-#  weight_decay: 0.001
-  betas: [0.5, 0.999]

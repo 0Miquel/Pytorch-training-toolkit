@@ -5,12 +5,11 @@ import os
 
 
 class FloodAreaSegmentation(Dataset):
-    def __init__(self, train, transforms, data_path, labels, batch_size):
+    def __init__(self, train, transforms, data_path, labels):
         if train:
             self.data_path = os.path.join(data_path, "train")
         else:
             self.data_path = os.path.join(data_path, "val")
-        self.batch_size = batch_size
         self.labels = labels
 
         images_dir = os.path.join(self.data_path, "images")

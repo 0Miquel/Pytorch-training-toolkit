@@ -1,5 +1,0 @@
-model_name: Resnet18
-settings:
-  pretrained: True
-  fine_tune: True
-  n_classes: 128

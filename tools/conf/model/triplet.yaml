@@ -1,5 +1,0 @@
-model_name: TripletNet
-settings:
-  pretrained: True
-  fine_tune: True
-  embedder_size: 256

@@ -1,4 +1,0 @@
-trainer_name: SegmentationTrainer
-n_epochs: 10
-device: cuda
-wandb: null

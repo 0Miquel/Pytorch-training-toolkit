@@ -1,4 +1,0 @@
-trainer_name: DCGANTrainer
-n_epochs: 5
-device: cuda
-wandb: null

@@ -1,4 +1,0 @@
-scheduler_name: OneCycleLR
-framework: torch
-settings:
-  max_lr: 0.01

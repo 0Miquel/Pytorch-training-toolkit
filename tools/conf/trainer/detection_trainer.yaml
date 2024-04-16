@@ -1,4 +1,0 @@
-trainer_name: DetectionTrainer
-n_epochs: 10
-device: cuda
-wandb: null
