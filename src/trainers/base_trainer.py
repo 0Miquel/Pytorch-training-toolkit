@@ -3,9 +3,9 @@ import torch
 from typing import Dict
 from matplotlib.figure import Figure
 
+from src.metrics import MetricMonitor
 from src.utils import (
     load_batch_to_device,
-    MetricMonitor,
     Logger,
     EarlyStopping,
     ModelCheckpoint,
