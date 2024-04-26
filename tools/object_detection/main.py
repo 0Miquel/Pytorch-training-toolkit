@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../../')
-
 import hydra
 import torch
 import torch.nn as nn
@@ -11,7 +8,7 @@ from albumentations.pytorch import ToTensorV2
 
 from src.config import Configuration
 from src.datasets import DetectionDataset
-from src.models import FasterRCNN
+from src.models import FasterRCNN, RetinaNet
 from src.trainers import DetectionTrainer
 
 cs = ConfigStore.instance()
@@ -51,8 +48,6 @@ def main(config: Configuration) -> None:
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
-                                                    total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = DetectionTrainer(
@@ -63,7 +58,6 @@ def main(config: Configuration) -> None:
         optimizer=optimizer,
         loss_computed_by_model=config.loss_computed_by_model,
         n_classes=config.n_classes,
-        scheduler=scheduler
     )
 
     # start training

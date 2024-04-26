@@ -1,12 +1,12 @@
 loss_computed_by_model: True
 
 data_path: "/media/fran/DATA/miquel/Pytorch-training-toolkit/data/Microcontroller Detection"
-batch_size: 2
+batch_size: 1
 n_epochs: 20
 lr: 0.001
 
 monitor: "mAP"
 max_mode: True
 
-labels: ["background", "ESP8266", "Heltec_ESP32_Lora", "Arduino_Nano", "Raspberry_Pi_3"]
+labels: ["ESP8266", "Heltec_ESP32_Lora", "Arduino_Nano", "Raspberry_Pi_3"]
 n_classes: 5

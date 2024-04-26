@@ -121,6 +121,7 @@ class BaseTrainer:
             if early_stop:
                 break
 
+        print("Loading best model and generating media...")
         self.model_checkpoint.load_best_model(self.model)
         figures = self.generate_media()
         self.logger.upload_media(figures)

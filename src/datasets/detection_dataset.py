@@ -42,7 +42,7 @@ class DetectionDataset(Dataset):
         for member in root.findall('object'):
             # map the current object name to `classes` list to get...
             # ... the label index and append to `labels` list
-            labels.append(self.labels.index(member.find('name').text))
+            labels.append(self.labels.index(member.find('name').text)+1)
             # xmin = left corner x-coordinates
             xmin = int(member.find('bndbox').find('xmin').text)
             # xmax = right corner x-coordinates

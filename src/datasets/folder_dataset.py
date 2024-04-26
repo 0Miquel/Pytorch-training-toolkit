@@ -43,5 +43,6 @@ class FolderDataset(Dataset):
         return {
             "x": transformed_img,
             "y": torch.tensor(encoded_label),
-            "label": torch.tensor(numeric_label)
+            "label": torch.tensor(numeric_label),
+            "img_path": img_path,
         }

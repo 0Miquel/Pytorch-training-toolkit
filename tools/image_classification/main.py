@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../../')
-
 import hydra
 import torch
 import torch.nn as nn
@@ -51,8 +48,8 @@ def main(config: Configuration) -> None:
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
-                                                    total_steps=config.n_epochs * len(train_dl))
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
+    #                                                 total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = ClassificationTrainer(
@@ -62,7 +59,7 @@ def main(config: Configuration) -> None:
         criterion=criterion,
         model=model,
         optimizer=optimizer,
-        scheduler=scheduler
+        # scheduler=scheduler,
     )
 
     # start training

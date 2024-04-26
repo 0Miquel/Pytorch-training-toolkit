@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../../')
-
 import hydra
 import torch
 from hydra.core.config_store import ConfigStore
@@ -55,8 +52,8 @@ def main(config: Configuration) -> None:
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
-                                                    total_steps=config.n_epochs * len(train_dl))
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
+    #                                                 total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = MetricLearningTrainer(
@@ -67,7 +64,7 @@ def main(config: Configuration) -> None:
         model=model,
         optimizer=optimizer,
         miner=miner,
-        scheduler=scheduler
+        # scheduler=scheduler,
     )
 
     # start training

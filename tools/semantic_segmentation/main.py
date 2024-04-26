@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../../')
-
 import hydra
 import torch
 import torch.nn as nn

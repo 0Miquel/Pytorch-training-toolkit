@@ -1,13 +1,82 @@
 import numpy as np
-import wandb
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch
 import torchvision.utils as vutils
-import cv2
 import umap
+import cv2
+from PIL import Image
 import umap.plot
-from src.utils import save_figure
+from sklearn import metrics
+import seaborn as sns
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+def plot_confusion_matrix(actual, predicted, classes):
+    if isinstance(actual, list):
+        actual = torch.cat(actual)
+    if isinstance(predicted, list):
+        predicted = torch.cat(predicted)
+
+    predicted = nn.Softmax(dim=1)(predicted)
+    predicted = torch.argmax(predicted, dim=1)
+    predicted = predicted.detach().cpu().numpy()
+    actual = actual.detach().cpu().numpy()
+
+    confusion_matrix = metrics.confusion_matrix(actual, predicted, normalize='true')
+    cm_figure = sns.heatmap(confusion_matrix, annot=True, fmt='.2f', xticklabels=classes, yticklabels=classes)
+    cm_figure = cm_figure.get_figure()
+
+    plt.close('all')
+    return cm_figure
+
+
+def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, labels, img_paths, k=5):
+    if isinstance(outputs, list):
+        outputs = torch.cat(outputs)
+    if isinstance(labels, list):
+        labels = torch.cat(labels)
+
+    outputs = outputs.detach().cpu().numpy()
+    labels = labels.squeeze().detach().cpu().numpy()
+    sample_labels = sample_labels.squeeze().detach().cpu().numpy()
+    sample_output = sample_output.detach().cpu().numpy()
+
+    cosine_similarities = cosine_similarity(sample_output, outputs)
+    top_k_indices = np.argsort(cosine_similarities, axis=1)[:, -k:]
+
+    num_samples = len(sample_labels)
+
+    fig, axes = plt.subplots(num_samples, k + 1, figsize=(k + 1, num_samples))
+    fig.tight_layout()
+
+    for i, (top_k_idx_row, sample_label, sample_img_path, similarity_row) in enumerate(
+            zip(top_k_indices, sample_labels, sample_img_paths, cosine_similarities)):
+
+        # Load the sample image
+        sample_img = Image.open(sample_img_path)
+        axes[i, 0].imshow(sample_img)
+        axes[i, 0].set_title(f"{sample_label}")
+        axes[i, 0].axis('off')
+
+        # Load and plot the k closest images
+        for j, (idx, similarity) in enumerate(zip(top_k_idx_row, similarity_row)):
+            img_path = img_paths[idx]
+            img = Image.open(img_path)
+            ax = axes[i, j + 1]
+            ax.imshow(img)
+            ax.set_title(f"{labels[idx]} - {similarity:.2f}")
+            ax.axis('off')
+
+            # Highlight with green rectangle if the label is the same, otherwise with red
+            rect_color = 'green' if labels[idx] == sample_label else 'red'
+            rect = plt.Rectangle((0, 0), img.width, img.height, linewidth=4, edgecolor=rect_color, facecolor='none')
+            ax.add_patch(rect)
+            ax.set_xlim(0, img.width)
+            ax.set_ylim(img.height, 0)
+
+    plt.close('all')
+    return fig
 
 
 def plot_umap(data, labels):
@@ -57,8 +126,11 @@ def plot_segmentation_results(x, y_pred, y_true, thr=0.5):
             axes[i, 1].set_title("Ground truth")
             axes[i, 2].set_title("Predicted")
         axes[i, 0].imshow(img)
+        axes[i, 0].axis('off')
         axes[i, 1].imshow(y_true_)
+        axes[i, 1].axis('off')
         axes[i, 2].imshow(y_pred_)
+        axes[i, 2].axis('off')
 
     plt.close('all')
     return fig
@@ -83,6 +155,8 @@ def plot_classification_results(x, y_pred, y_true, labels):
         bar_colors = ['g' if j == max_idx and output_label == target_label
                       else 'r' if j == max_idx and output_label != target_label else 'b' for j in range(len(labels))]
         ax[i, 0].imshow(img)
+        ax[i, 0].axis('off')
+        ax[i, 0].set_title(f"Predicted: {output_label}, True: {target_label}")
         ax[i, 1].bar(labels, y_pred_.cpu().detach().numpy(), color=bar_colors)
         ax[i, 1].set_ylim(0, 1.0)
         ax[i, 1].tick_params(axis='x', rotation=30)

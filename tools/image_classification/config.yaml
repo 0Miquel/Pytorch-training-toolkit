@@ -1,6 +1,6 @@
 data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/MNIST
 batch_size: 64
-n_epochs: 5
+n_epochs: 1
 lr: 1e-3
 
 labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
