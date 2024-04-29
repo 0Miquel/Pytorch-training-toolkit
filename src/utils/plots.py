@@ -25,6 +25,7 @@ def plot_confusion_matrix(actual, predicted, classes):
 
     confusion_matrix = metrics.confusion_matrix(actual, predicted, normalize='true')
     cm_figure = sns.heatmap(confusion_matrix, annot=True, fmt='.2f', xticklabels=classes, yticklabels=classes)
+    cm_figure.set(xlabel="Predicted", ylabel="True")
     cm_figure = cm_figure.get_figure()
 
     plt.close('all')
@@ -54,7 +55,7 @@ def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, 
             zip(top_k_indices, sample_labels, sample_img_paths, cosine_similarities)):
 
         # Load the sample image
-        sample_img = Image.open(sample_img_path)
+        sample_img = cv2.imread(sample_img_path)[:, :, ::-1]  # Image.open(sample_img_path)
         axes[i, 0].imshow(sample_img)
         axes[i, 0].set_title(f"{sample_label}")
         axes[i, 0].axis('off')
@@ -62,7 +63,7 @@ def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, 
         # Load and plot the k closest images
         for j, (idx, similarity) in enumerate(zip(top_k_idx_row, similarity_row)):
             img_path = img_paths[idx]
-            img = Image.open(img_path)
+            img = cv2.imread(img_path)[:, :, ::-1]  # Image.open(img_path)
             ax = axes[i, j + 1]
             ax.imshow(img)
             ax.set_title(f"{labels[idx]} - {similarity:.2f}")
@@ -70,10 +71,12 @@ def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, 
 
             # Highlight with green rectangle if the label is the same, otherwise with red
             rect_color = 'green' if labels[idx] == sample_label else 'red'
-            rect = plt.Rectangle((0, 0), img.width, img.height, linewidth=4, edgecolor=rect_color, facecolor='none')
+            width = img.shape[1]
+            height = img.shape[0]
+            rect = plt.Rectangle((0, 0), width, height, linewidth=4, edgecolor=rect_color, facecolor='none')
             ax.add_patch(rect)
-            ax.set_xlim(0, img.width)
-            ax.set_ylim(img.height, 0)
+            ax.set_xlim(0, width)
+            ax.set_ylim(height, 0)
 
     plt.close('all')
     return fig
@@ -156,7 +159,7 @@ def plot_classification_results(x, y_pred, y_true, labels):
                       else 'r' if j == max_idx and output_label != target_label else 'b' for j in range(len(labels))]
         ax[i, 0].imshow(img)
         ax[i, 0].axis('off')
-        ax[i, 0].set_title(f"Predicted: {output_label}, True: {target_label}")
+        ax[i, 0].set_title(f"{target_label}")
         ax[i, 1].bar(labels, y_pred_.cpu().detach().numpy(), color=bar_colors)
         ax[i, 1].set_ylim(0, 1.0)
         ax[i, 1].tick_params(axis='x', rotation=30)
