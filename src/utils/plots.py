@@ -61,12 +61,12 @@ def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, 
         axes[i, 0].axis('off')
 
         # Load and plot the k closest images
-        for j, (idx, similarity) in enumerate(zip(top_k_idx_row, similarity_row)):
+        for j, idx in enumerate(top_k_idx_row):
             img_path = img_paths[idx]
             img = cv2.imread(img_path)[:, :, ::-1]  # Image.open(img_path)
             ax = axes[i, j + 1]
             ax.imshow(img)
-            ax.set_title(f"{labels[idx]} - {similarity:.2f}")
+            ax.set_title(f"{labels[idx]} - {similarity_row[idx]:.4f}")
             ax.axis('off')
 
             # Highlight with green rectangle if the label is the same, otherwise with red
