@@ -7,16 +7,16 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from src.config import Configuration
-from src.datasets import FloodAreaSegmentation
+from src.datasets import ClothesSegmentationDataset
 from src.models import Unet
 from src.trainers import SegmentationTrainer
 
 cs = ConfigStore.instance()
 # Registering the Config class with the name 'config'.
-cs.store(name="config", node=Configuration)
+cs.store(name="config_multi", node=Configuration)
 
 
-@hydra.main(version_base=None, config_path=".", config_name="config.yaml")
+@hydra.main(version_base=None, config_path=".", config_name="config_multi.yaml")
 def main(config: Configuration) -> None:
     # transforms
     transforms_train = A.Compose([
@@ -32,10 +32,10 @@ def main(config: Configuration) -> None:
     ])
 
     # create the dataset
-    train_dataset = FloodAreaSegmentation(train=True, data_path=config.data_path, labels=config.labels,
-                                          transforms=transforms_train)
-    valid_dataset = FloodAreaSegmentation(train=False, data_path=config.data_path, labels=config.labels,
-                                          transforms=transforms_val)
+    train_dataset = ClothesSegmentationDataset(train=True, data_path=config.data_path, labels=config.labels,
+                                               transforms=transforms_train)
+    valid_dataset = ClothesSegmentationDataset(train=False, data_path=config.data_path, labels=config.labels,
+                                               transforms=transforms_val)
 
     # create the dataloaders
     train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
@@ -45,12 +45,12 @@ def main(config: Configuration) -> None:
     model = Unet(n_classes=config.n_classes)
 
     # create the loss function
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = nn.CrossEntropyLoss()
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
-                                                    total_steps=config.n_epochs * len(train_dl))
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
+    #                                                 total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = SegmentationTrainer(
@@ -60,7 +60,7 @@ def main(config: Configuration) -> None:
         criterion=criterion,
         model=model,
         optimizer=optimizer,
-        scheduler=scheduler
+        # scheduler=scheduler
     )
 
     # start training

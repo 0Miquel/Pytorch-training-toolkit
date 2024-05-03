@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from src.utils import (
     load_batch_to_device,
     weights_init,
-    plot_fake_imgs,
     Logger,
     MetricMonitor,
     set_random_seed
@@ -20,6 +19,7 @@ from src.models import get_model
 from src.optimizers import get_optimizer
 from src.schedulers import get_scheduler
 
+import numpy as np
 import torch
 
 
@@ -134,7 +134,7 @@ class DCGANTrainer:
                 tepoch.set_postfix(metrics)
 
         if epoch % self.save_media_epoch == 0:
-            fake_imgs = plot_fake_imgs(self.netG, self.latent_vector_size)
+            fake_imgs = self.plot_fake_imgs(self.netG, self.latent_vector_size)
             self.logger.add_media({"fake_imgs": fake_imgs})
         self.logger.add_metrics(metrics, "train")
 
@@ -153,3 +153,20 @@ class DCGANTrainer:
 
         if self.logger is not None:
             self.logger.finish()
+
+    @staticmethod
+    def plot_fake_imgs(generator, latent_vector_size):
+        device = next(generator.parameters()).device
+        fixed_noise = torch.randn(64, latent_vector_size, 1, 1, device=device)
+        fake = generator(fixed_noise).detach().cpu()
+        # make grid and convert it to numpy
+        fake_np = np.transpose(vutils.make_grid(fake, padding=2, normalize=True).numpy(), (1, 2, 0))
+
+        # Create matplotlib figure and axes
+        fig, ax = plt.subplots(figsize=(8, 8))
+        # Display the image
+        ax.imshow(fake_np)
+        ax.axis('off')  # Hide axes
+
+        plt.close('all')
+        return fig
