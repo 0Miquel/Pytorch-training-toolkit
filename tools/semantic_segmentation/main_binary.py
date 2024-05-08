@@ -9,7 +9,7 @@ from albumentations.pytorch import ToTensorV2
 from src.config import Configuration
 from src.datasets import FloodAreaSegmentation
 from src.models import Unet
-from src.trainers import SegmentationTrainer
+from src.trainers import SegmentationBinaryTrainer
 
 cs = ConfigStore.instance()
 # Registering the Config class with the name 'config'.
@@ -53,7 +53,7 @@ def main(config: Configuration) -> None:
     #                                                 total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
-    trainer = SegmentationTrainer(
+    trainer = SegmentationBinaryTrainer(
         config=config,
         train_dl=train_dl,
         val_dl=val_dl,
