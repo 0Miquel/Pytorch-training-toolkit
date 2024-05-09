@@ -1,12 +1,14 @@
 import wandb
 import time
 from omegaconf import OmegaConf
-
-from src.utils import save_figure
+import hydra
+import os
+import csv
 
 
 class Logger:
     def __init__(self, cfg):
+        self.results_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
         self.start_time = time.time()
         self.cfg = cfg
         if self.cfg.wandb is not None:
@@ -42,12 +44,25 @@ class Logger:
             wandb.log(wandb_logs)
 
     def save_media(self, figures):
+        figs_dir = os.path.join(self.results_dir, 'figs')
+        os.makedirs(figs_dir, exist_ok=True)
         for figure_name, figure in figures.items():
-            figure_name = figure_name + ".png"
-            save_figure(figure, figure_name)
+            fig_filename = os.path.join(figs_dir, figure_name + ".png")
+            figure.savefig(fig_filename)
 
     def save_metrics(self, logs):
-        pass
+        csv_filename = os.path.join(self.results_dir, "metrics.csv")
+
+        if not os.path.exists(csv_filename):
+            # If the file doesn't exist, write the keys to the CSV file
+            with open(csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(list(logs.keys()))
+
+        # Write the values corresponding to each key
+        with open(csv_filename, 'a', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=list(logs.keys()))
+            writer.writerow(logs)
 
     def finish(self):
         time_elapsed = time.time() - self.start_time

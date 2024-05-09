@@ -4,16 +4,6 @@ import torch
 import random
 import numpy as np
 import argparse
-import os
-import hydra
-
-
-def save_figure(figure, figure_name):
-    outputs_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    figs_dir = os.path.join(outputs_dir, 'figs')
-    os.makedirs(figs_dir, exist_ok=True)
-    figure_path = os.path.join(figs_dir, figure_name)
-    figure.savefig(figure_path)
 
 
 def load_yaml_config(path):
