@@ -14,7 +14,7 @@ import seaborn as sns
 
 
 class ClassificationTrainer(BaseTrainer):
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
         Update metric_monitor with the metrics computed from output and batch.
         """
@@ -23,6 +23,7 @@ class ClassificationTrainer(BaseTrainer):
         acc = metrics.accuracy_score(y_true, y_pred)
 
         metric_monitor.update("acc", acc)
+        return metric_monitor.get_metrics()
 
     def generate_media(self) -> Dict[str, Figure]:
         """

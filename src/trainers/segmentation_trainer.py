@@ -15,7 +15,7 @@ import segmentation_models_pytorch as smp
 
 
 class SegmentationMultiTrainer(BaseTrainer):
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
         Update metric_monitor with the metrics computed from output and batch.
         """
@@ -27,6 +27,7 @@ class SegmentationMultiTrainer(BaseTrainer):
 
         metric_monitor.update("f1", f1_score.item())
         metric_monitor.update("iou", iou_score.item())
+        return metric_monitor.get_metrics()
 
     def generate_media(self) -> Dict[str, Figure]:
         """

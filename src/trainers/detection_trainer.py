@@ -43,7 +43,7 @@ class DetectionTrainer(BaseTrainer):
             raise RuntimeError("`criterion` should not be None if `loss_computed_by_model` is False.")
         return self.criterion(output, batch["y"])
 
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
         Update metric_monitor with the metrics computed from output and batch.
         """
@@ -57,3 +57,4 @@ class DetectionTrainer(BaseTrainer):
             threshold=0.000001,
         )
         metric_monitor.update("mAP", mAP.item())
+        return metric_monitor.get_metrics()

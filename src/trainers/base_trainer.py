@@ -101,8 +101,7 @@ class BaseTrainer:
                     loss = self.compute_loss(output, batch)
                     # update metrics and loss
                     metric_monitor.update("loss", loss.item())
-                self.compute_metrics(metric_monitor, output, batch)
-                metrics = metric_monitor.get_metrics()
+                metrics = self.compute_metrics(metric_monitor, output, batch)
                 tepoch.set_postfix(**metrics)
 
         return metrics
@@ -123,12 +122,6 @@ class BaseTrainer:
 
         return self.model_checkpoint.best_metric
 
-    def evaluate(self):
-        print("Loading best model and generating media...")
-        self.model_checkpoint.load_best_model(self.model)
-        figures = self.generate_media()
-        self.logger.upload_media(figures)
-
     def predict(self, model, batch):
         return model(batch["x"])
 
@@ -137,11 +130,17 @@ class BaseTrainer:
             raise RuntimeError("`criterion` should not be None.")
         return self.criterion(output, batch["y"])
 
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
         Update metric_monitor with the metrics computed from output and batch.
         """
-        pass
+        return {}
+
+    def evaluate(self):
+        print("Loading best model and generating media...")
+        self.model_checkpoint.load_best_model(self.model)
+        figures = self.generate_media()
+        self.logger.upload_media(figures)
 
     def generate_media(self) -> Dict[str, Figure]:
         """
