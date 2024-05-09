@@ -42,8 +42,8 @@ class BaseTrainer:
         self.train_dl = train_dl
         self.val_dl = val_dl
 
-        # LOSS
-        self.loss = criterion
+        # LOSS FUNCTION
+        self.criterion = criterion
 
         # MODEL
         self.model = model.to(self.device)
@@ -97,7 +97,7 @@ class BaseTrainer:
                 # predict
                 output = self.predict(self.model, batch)
                 # loss
-                if self.loss is not None:
+                if self.criterion is not None:
                     loss = self.compute_loss(output, batch)
                     # update metrics and loss
                     metric_monitor.update("loss", loss.item())
@@ -133,9 +133,9 @@ class BaseTrainer:
         return model(sample["x"])
 
     def compute_loss(self, output, sample):
-        if self.loss is None:
+        if self.criterion is None:
             raise RuntimeError("`criterion` should not be None.")
-        return self.loss(output, sample["y"])
+        return self.criterion(output, sample["y"])
 
     def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
         """

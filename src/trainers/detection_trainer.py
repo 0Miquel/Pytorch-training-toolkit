@@ -39,9 +39,9 @@ class DetectionTrainer(BaseTrainer):
             if isinstance(output, dict):
                 return torch.stack([v for _, v in output.items()]).mean()
             return torch.stack(list(output)).sum()
-        if self.loss is None:
+        if self.criterion is None:
             raise RuntimeError("`criterion` should not be None if `loss_computed_by_model` is False.")
-        return self.loss(output, sample["y"])
+        return self.criterion(output, sample["y"])
 
     def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
         """

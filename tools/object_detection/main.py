@@ -8,7 +8,7 @@ from albumentations.pytorch import ToTensorV2
 
 from src.config import Configuration
 from src.datasets import DetectionDataset
-from src.models import FasterRCNN, RetinaNet
+from src.models import FasterRCNN
 from src.trainers import DetectionTrainer
 
 cs = ConfigStore.instance()

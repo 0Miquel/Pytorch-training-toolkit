@@ -36,14 +36,14 @@ class MetricLearningTrainer(BaseTrainer):
         self.miner = miner
 
     def compute_loss(self, output, sample):
-        if self.loss is None:
+        if self.criterion is None:
             raise RuntimeError("`criterion` should not be None.")
 
         if self.miner is None:
-            return self.loss(output, sample["label"].squeeze())
+            return self.criterion(output, sample["label"].squeeze())
         else:
             miner_tuples = self.miner(output, sample["label"].squeeze())
-            return self.loss(output, sample["label"].squeeze(), miner_tuples)
+            return self.criterion(output, sample["label"].squeeze(), miner_tuples)
 
     def generate_media(self) -> Dict[str, Figure]:
         """
