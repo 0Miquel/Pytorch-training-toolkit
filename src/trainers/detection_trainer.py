@@ -29,30 +29,30 @@ class DetectionTrainer(BaseTrainer):
         self.n_classes = n_classes
         self.loss_computed_by_model = loss_computed_by_model
 
-    def predict(self, model, sample):
+    def predict(self, model, batch):
         if self.loss_computed_by_model and model.training:
-            return model(sample["x"], sample["y"])
-        return model(sample["x"])
+            return model(batch["x"], batch["y"])
+        return model(batch["x"])
 
-    def compute_loss(self, output, sample):
+    def compute_loss(self, output, batch):
         if self.loss_computed_by_model:
             if isinstance(output, dict):
                 return torch.stack([v for _, v in output.items()]).mean()
             return torch.stack(list(output)).sum()
         if self.criterion is None:
             raise RuntimeError("`criterion` should not be None if `loss_computed_by_model` is False.")
-        return self.criterion(output, sample["y"])
+        return self.criterion(output, batch["y"])
 
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
         """
-        Update metric_monitor with the metrics computed from output and sample.
+        Update metric_monitor with the metrics computed from output and batch.
         """
         mAP, _ = mean_average_precision(
             [a["boxes"] for a in output],
             [a["labels"] for a in output],
             [a["scores"] for a in output],
-            [a["boxes"] for a in sample["y"]],
-            [a["labels"] for a in sample["y"]],
+            [a["boxes"] for a in batch["y"]],
+            [a["labels"] for a in batch["y"]],
             n_classes=self.n_classes,
             threshold=0.000001,
         )

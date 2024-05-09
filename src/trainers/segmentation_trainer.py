@@ -15,11 +15,11 @@ import segmentation_models_pytorch as smp
 
 
 class SegmentationMultiTrainer(BaseTrainer):
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
         """
-        Update metric_monitor with the metrics computed from output and sample.
+        Update metric_monitor with the metrics computed from output and batch.
         """
-        y_pred, y_true, n_classes = self.post_process(output, sample["y"])
+        y_pred, y_true, n_classes = self.post_process(output, batch["y"])
         tp, fp, fn, tn = smp.metrics.get_stats(y_pred, y_true, mode='multiclass', num_classes=n_classes)
 
         iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro-imagewise")
@@ -30,15 +30,15 @@ class SegmentationMultiTrainer(BaseTrainer):
 
     def generate_media(self) -> Dict[str, Figure]:
         """
-        Generate media from output and sample.
+        Generate media from output and batch.
         """
         self.model.eval()
-        sample = next(self.val_dl.__iter__())
-        sample = load_batch_to_device(sample, self.device)
-        output = self.predict(self.model, sample)
+        batch = next(self.val_dl.__iter__())
+        batch = load_batch_to_device(batch, self.device)
+        output = self.predict(self.model, batch)
 
-        y_pred, y_true, n_classes = self.post_process(output, sample["y"])
-        segmentation_results = self.plot_segmentation_results(sample["x"], y_pred, y_true, n_classes)
+        y_pred, y_true, n_classes = self.post_process(output, batch["y"])
+        segmentation_results = self.plot_segmentation_results(batch["x"], y_pred, y_true, n_classes)
 
         return {"segmentation_results": segmentation_results}
 
@@ -85,11 +85,11 @@ class SegmentationMultiTrainer(BaseTrainer):
 
 
 class SegmentationBinaryTrainer(BaseTrainer):
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
         """
-        Update metric_monitor with the metrics computed from output and sample.
+        Update metric_monitor with the metrics computed from output and batch.
         """
-        y_pred, y_true = self.post_process(output, sample["y"])
+        y_pred, y_true = self.post_process(output, batch["y"])
         tp, fp, fn, tn = smp.metrics.get_stats(y_pred, y_true, mode='binary')
 
         iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro-imagewise")
@@ -100,15 +100,15 @@ class SegmentationBinaryTrainer(BaseTrainer):
 
     def generate_media(self) -> Dict[str, Figure]:
         """
-        Generate media from output and sample.
+        Generate media from output and batch.
         """
         self.model.eval()
-        sample = next(self.val_dl.__iter__())
-        sample = load_batch_to_device(sample, self.device)
-        output = self.predict(self.model, sample)
+        batch = next(self.val_dl.__iter__())
+        batch = load_batch_to_device(batch, self.device)
+        output = self.predict(self.model, batch)
 
-        y_pred, y_true = self.post_process(output, sample["y"])
-        segmentation_results = self.plot_segmentation_results(sample["x"], y_pred, y_true)
+        y_pred, y_true = self.post_process(output, batch["y"])
+        segmentation_results = self.plot_segmentation_results(batch["x"], y_pred, y_true)
 
         return {"segmentation_results": segmentation_results}
 

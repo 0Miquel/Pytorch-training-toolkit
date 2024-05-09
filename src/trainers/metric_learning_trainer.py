@@ -35,19 +35,19 @@ class MetricLearningTrainer(BaseTrainer):
         )
         self.miner = miner
 
-    def compute_loss(self, output, sample):
+    def compute_loss(self, output, batch):
         if self.criterion is None:
             raise RuntimeError("`criterion` should not be None.")
 
         if self.miner is None:
-            return self.criterion(output, sample["label"].squeeze())
+            return self.criterion(output, batch["label"].squeeze())
         else:
-            miner_tuples = self.miner(output, sample["label"].squeeze())
-            return self.criterion(output, sample["label"].squeeze(), miner_tuples)
+            miner_tuples = self.miner(output, batch["label"].squeeze())
+            return self.criterion(output, batch["label"].squeeze(), miner_tuples)
 
     def generate_media(self) -> Dict[str, Figure]:
         """
-        Generate media from output and sample.
+        Generate media from output and batch.
         """
         self.model.eval()
 
@@ -65,12 +65,12 @@ class MetricLearningTrainer(BaseTrainer):
         umap_results = self.plot_umap(outputs, labels)
 
         # qualitative results
-        sample = next(self.val_dl.__iter__())
-        sample = load_batch_to_device(sample, self.device)
-        sample_output = self.predict(self.model, sample)
-        sample_labels = sample["label"].squeeze()
-        sample_img_paths = sample["img_path"]
-        top_k_results = self.plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, labels, img_paths)
+        batch = next(self.val_dl.__iter__())
+        batch = load_batch_to_device(batch, self.device)
+        batch_output = self.predict(self.model, batch)
+        batch_labels = batch["label"].squeeze()
+        batch_img_paths = batch["img_path"]
+        top_k_results = self.plot_top_k_similar(batch_labels, batch_output, batch_img_paths, outputs, labels, img_paths)
 
         return {"umap": umap_results, "top_k": top_k_results}
 

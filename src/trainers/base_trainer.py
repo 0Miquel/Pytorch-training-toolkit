@@ -121,30 +121,31 @@ class BaseTrainer:
             if early_stop:
                 break
 
+        return self.model_checkpoint.best_metric
+
+    def evaluate(self):
         print("Loading best model and generating media...")
         self.model_checkpoint.load_best_model(self.model)
         figures = self.generate_media()
         self.logger.upload_media(figures)
-        self.logger.finish()
 
-        return self.model_checkpoint.best_metric
+    def predict(self, model, batch):
+        return model(batch["x"])
 
-    def predict(self, model, sample):
-        return model(sample["x"])
-
-    def compute_loss(self, output, sample):
+    def compute_loss(self, output, batch):
         if self.criterion is None:
             raise RuntimeError("`criterion` should not be None.")
-        return self.criterion(output, sample["y"])
+        return self.criterion(output, batch["y"])
 
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
         """
-        Update metric_monitor with the metrics computed from output and sample.
+        Update metric_monitor with the metrics computed from output and batch.
         """
         pass
 
     def generate_media(self) -> Dict[str, Figure]:
         """
-        Generate media from output and sample.
+        Generate media from output and batch.
         """
         return {}
+

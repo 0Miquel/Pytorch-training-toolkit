@@ -14,11 +14,11 @@ import seaborn as sns
 
 
 class ClassificationTrainer(BaseTrainer):
-    def compute_metrics(self, metric_monitor: MetricMonitor, output, sample) -> None:
+    def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> None:
         """
-        Update metric_monitor with the metrics computed from output and sample.
+        Update metric_monitor with the metrics computed from output and batch.
         """
-        y_pred, y_true, _ = self.post_process(output, sample["y"])
+        y_pred, y_true, _ = self.post_process(output, batch["y"])
 
         acc = metrics.accuracy_score(y_true, y_pred)
 
@@ -26,11 +26,11 @@ class ClassificationTrainer(BaseTrainer):
 
     def generate_media(self) -> Dict[str, Figure]:
         """
-        Generate media from output and sample.
+        Generate media from output and batch.
         """
         self.model.eval()
 
-        # Confussion matrix
+        # Confusion matrix
         predicted = []
         actual = []
         for step, batch in enumerate(self.val_dl):
@@ -45,11 +45,11 @@ class ClassificationTrainer(BaseTrainer):
         confusion_matrix = self.plot_confusion_matrix(actual, predicted, self.val_dl.dataset.labels)
 
         # Qualitative results
-        sample = next(self.val_dl.__iter__())
-        sample = load_batch_to_device(sample, self.device)
-        output = self.predict(self.model, sample)
-        y_pred, y_true, y_pred_prob = self.post_process(output, sample["y"])
-        classification_results = self.plot_classification_results(sample["x"], y_pred, y_true, y_pred_prob,
+        batch = next(self.val_dl.__iter__())
+        batch = load_batch_to_device(batch, self.device)
+        output = self.predict(self.model, batch)
+        y_pred, y_true, y_pred_prob = self.post_process(output, batch["y"])
+        classification_results = self.plot_classification_results(batch["x"], y_pred, y_true, y_pred_prob,
                                                                   self.val_dl.dataset.labels)
 
         return {"classification_results": classification_results, "confusion_matrix": confusion_matrix}

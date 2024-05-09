@@ -64,6 +64,7 @@ def main(config: Configuration) -> None:
 
     # start training
     best_metric = trainer.fit()
+    trainer.evaluate()
 
     return best_metric
 
