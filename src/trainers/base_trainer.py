@@ -132,7 +132,8 @@ class BaseTrainer:
 
     def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
-        Update metric_monitor with the metrics computed from output and batch.
+        Update metric_monitor with the metrics computed from output and batch and
+        return the metrics as a dictionary.
         """
         return {}
 
