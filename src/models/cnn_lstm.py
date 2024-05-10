@@ -1,46 +1,27 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torchvision import models
 
 
-class CNN(nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
-
-        self.conv1 = nn.Conv2d(3, 10, 5)
-        self.conv2 = nn.Conv2d(10, 20, 5)
-        self.conv3 = nn.Conv2d(20, 30, 5)
-
-    def forward(self, i):
-        x = i.view(-1, i.shape[2], i.shape[3], i.shape[4])
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = nn.AvgPool2d(4)(x)
-        x = x.view(i.shape[0], i.shape[1], -1)
-        return x
-
-
-class LSTM(nn.Module):
-    def __init__(self):
-        super(LSTM, self).__init__()
-        self.lstm = nn.LSTM(750, 100)
-        self.fc = nn.Linear(100 * 50, 2)
+class CNNLSTM(nn.Module):
+    def __init__(self, n_classes):
+        super(CNNLSTM, self).__init__()
+        self.cnn = models.resnet18(pretrained=True)
+        in_features = self.cnn.fc.in_features
+        self.cnn = torch.nn.Sequential(*(list(self.cnn.children())[:-1]))  # remove last layer
+        self.rnn = nn.LSTM(
+            input_size=in_features,
+            hidden_size=64,
+            num_layers=1,
+            batch_first=True)
+        self.linear = nn.Linear(64, n_classes)
 
     def forward(self, x):
-        x, _ = self.lstm(x)
-        x = x.view(x.shape[0], -1)
-        x = self.fc(x)
-        return x
+        batch_size, timesteps, C, H, W = x.size()
+        c_in = x.view(batch_size * timesteps, C, H, W)
+        c_out = self.cnn(c_in)
+        r_in = c_out.view(batch_size, timesteps, -1)
+        r_out, _ = self.rnn(r_in)
+        r_out2 = self.linear(r_out[:, -1, :])
 
-
-x = torch.rand((64, 50, 3, 32, 32))
-net_cnn = CNN()
-net_lstm = LSTM()
-
-features = net_cnn(x)
-out = net_lstm(features)
-
-print(x.shape)
-print(features.shape)
-print(out.shape)
+        return r_out2
