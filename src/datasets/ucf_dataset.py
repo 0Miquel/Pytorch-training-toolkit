@@ -87,11 +87,7 @@ def read_video(filename, transforms=None, n_frames=None):
     # Release the video capture object
     cap.release()
 
-    # TODO: need to change this to always return the same dimension
-    if n_frames is not None:
-        step_size = len(frames) // n_frames
-    else:
-        step_size = 1
-    selected_frames = [frames[i] for i in range(step_size, len(frames), step_size)]
+    idx = np.round(np.linspace(0, len(frames) - 1, n_frames)).astype(int)
+    selected_frames = [frames[i] for i in idx]
 
     return selected_frames
