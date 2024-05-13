@@ -12,7 +12,7 @@ class UCFDataset(Dataset):
     Class for the typical Folder Dataset, where a folder consists of multiple subfolders for every class which
     contains the class images. It does not support any other format like csv file.
     """
-    def __init__(self, train, transforms, data_path):
+    def __init__(self, train, transforms, data_path, n_frames=10):
         if train:
             self.data_path = os.path.join(data_path, "train")
             csv_filename = os.path.join(data_path, "train.csv")
@@ -37,7 +37,7 @@ class UCFDataset(Dataset):
 
         self.class_names = np.unique(self.labels).tolist()
         self.n_classes = len(self.class_names)
-        self.n_frames = 10
+        self.n_frames = n_frames
 
         self.transforms = transforms
 
@@ -48,7 +48,10 @@ class UCFDataset(Dataset):
         # process image
         video_path = self.video_filenames[idx]
         video = read_video(video_path, self.transforms, self.n_frames)
-        video = torch.stack(video)
+        if len(video) == 1:
+            video = video[0]
+        else:
+            video = torch.stack(video)
         # process label
         label = self.labels[idx]
         label_idx = self.class_names.index(label)

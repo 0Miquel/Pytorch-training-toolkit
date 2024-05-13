@@ -7,7 +7,7 @@ from albumentations.pytorch import ToTensorV2
 
 from src.config import Configuration
 from src.datasets import UCFDataset
-from src.models import CNNLSTM
+from src.models import CNNLSTM, Resnet18, ClassConvLSTM, ResNet3D
 from src.trainers import ClassificationTrainer
 
 cs = ConfigStore.instance()
@@ -16,7 +16,7 @@ cs.store(name="config", node=Configuration)
 
 
 @hydra.main(version_base=None, config_path=".", config_name="config.yaml")
-def main(config: Configuration) -> None:
+def main(cfg: Configuration) -> None:
     # transforms
     transforms_train = A.Compose([
         A.Resize(width=224, height=224),
@@ -30,27 +30,30 @@ def main(config: Configuration) -> None:
     ])
 
     # create the dataset
-    train_dataset = UCFDataset(train=True, data_path=config.data_path, transforms=transforms_train)
-    valid_dataset = UCFDataset(train=False, data_path=config.data_path, transforms=transforms_val)
+    train_dataset = UCFDataset(train=True, data_path=cfg.data_path, transforms=transforms_train, n_frames=cfg.n_frames)
+    valid_dataset = UCFDataset(train=False, data_path=cfg.data_path, transforms=transforms_val, n_frames=cfg.n_frames)
 
     # create the dataloaders
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=True)
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
+    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
     # create the model
-    model = CNNLSTM(n_classes=train_dataset.n_classes)
+    # model = CNNLSTM(n_classes=cfg.n_classes)
+    # model = Resnet18(n_classes=cfg.n_classes)
+    # model = ClassConvLSTM(n_classes=cfg.n_classes)
+    model = ResNet3D(n_classes=cfg.n_classes)
 
     # create the loss function
     criterion = nn.CrossEntropyLoss()
 
     # instantiate the optimizer and scheduler
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr)
     # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
     #                                                 total_steps=config.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = ClassificationTrainer(
-        config=config,
+        config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
         criterion=criterion,
@@ -61,7 +64,7 @@ def main(config: Configuration) -> None:
 
     # start training
     best_metric = trainer.fit()
-    trainer.evaluate()
+    # trainer.evaluate()
 
     return best_metric
 

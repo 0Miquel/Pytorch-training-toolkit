@@ -88,7 +88,7 @@ class ConvLSTM(nn.Module):
     """
 
     def __init__(self, input_dim, hidden_dim, kernel_size, num_layers,
-                 batch_first=False, bias=True, return_all_layers=False):
+                 batch_first=True, bias=True, return_all_layers=False):
         super(ConvLSTM, self).__init__()
 
         self._check_kernel_size_consistency(kernel_size)
@@ -190,3 +190,20 @@ class ConvLSTM(nn.Module):
         if not isinstance(param, list):
             param = [param] * num_layers
         return param
+
+
+class ClassConvLSTM(nn.Module):
+    def __init__(self, n_classes, input_dim=3, hidden_dim=64, kernel_size=(3, 3), num_layers=1):
+        super(ClassConvLSTM, self).__init__()
+        self.conv_lstm = ConvLSTM(input_dim=input_dim, hidden_dim=hidden_dim,
+                                  kernel_size=kernel_size, num_layers=num_layers)
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(hidden_dim, n_classes)
+
+    def forward(self, x):
+        out, _ = self.conv_lstm(x)
+        x = out[0]
+        x = self.avg_pool(x[:, -1])  # avg pooling from last frame features
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x

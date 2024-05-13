@@ -4,17 +4,29 @@ from torchvision import models
 
 
 class CNNLSTM(nn.Module):
-    def __init__(self, n_classes):
+    def __init__(self, n_classes, lstm_layers=64, backbone='resnet18'):
         super(CNNLSTM, self).__init__()
-        self.cnn = models.resnet18(pretrained=True)
+
+        if backbone == 'resnet18':
+            self.cnn = models.resnet18(pretrained=True)
+        elif backbone == 'resnet50':
+            self.cnn = models.resnet50(pretrained=True)
         in_features = self.cnn.fc.in_features
         self.cnn = torch.nn.Sequential(*(list(self.cnn.children())[:-1]))  # remove last layer
+
+        if isinstance(lstm_layers, list):
+            num_layers = len(lstm_layers)
+            out_features = lstm_layers[-1]
+        else:
+            num_layers = 1
+            out_features = lstm_layers
         self.rnn = nn.LSTM(
             input_size=in_features,
-            hidden_size=64,
-            num_layers=1,
+            hidden_size=lstm_layers,
+            num_layers=num_layers,
             batch_first=True)
-        self.linear = nn.Linear(64, n_classes)
+
+        self.linear = nn.Linear(out_features, n_classes)
 
     def forward(self, x):
         batch_size, timesteps, C, H, W = x.size()

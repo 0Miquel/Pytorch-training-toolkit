@@ -25,6 +25,7 @@ class ClassificationTrainer(BaseTrainer):
         metric_monitor.update("acc", acc)
         return metric_monitor.get_metrics()
 
+    @torch.no_grad()
     def generate_media(self) -> Dict[str, Figure]:
         """
         Generate media from output and batch.

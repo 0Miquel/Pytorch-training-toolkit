@@ -143,6 +143,7 @@ class BaseTrainer:
         figures = self.generate_media()
         self.logger.upload_media(figures)
 
+    @torch.no_grad()
     def generate_media(self) -> Dict[str, Figure]:
         """
         Generate media from output and batch.
