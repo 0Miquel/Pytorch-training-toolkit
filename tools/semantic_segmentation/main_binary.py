@@ -1,23 +1,16 @@
 import hydra
 import torch
 import torch.nn as nn
-
-from hydra.core.config_store import ConfigStore
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-from src.config import Configuration
 from src.datasets import FloodAreaSegmentation
 from src.models import Unet
 from src.trainers import SegmentationBinaryTrainer
 
-cs = ConfigStore.instance()
-# Registering the Config class with the name 'config'.
-cs.store(name="config_binary", node=Configuration)
-
 
 @hydra.main(version_base=None, config_path=".", config_name="config_binary.yaml")
-def main(config: Configuration) -> None:
+def main(cfg):
     # transforms
     transforms_train = A.Compose([
         A.Resize(width=224, height=224),
@@ -32,29 +25,29 @@ def main(config: Configuration) -> None:
     ])
 
     # create the dataset
-    train_dataset = FloodAreaSegmentation(train=True, data_path=config.data_path, labels=config.labels,
+    train_dataset = FloodAreaSegmentation(train=True, data_path=cfg.data_path, labels=cfg.labels,
                                           transforms=transforms_train)
-    valid_dataset = FloodAreaSegmentation(train=False, data_path=config.data_path, labels=config.labels,
+    valid_dataset = FloodAreaSegmentation(train=False, data_path=cfg.data_path, labels=cfg.labels,
                                           transforms=transforms_val)
 
     # create the dataloaders
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
-    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=True)
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
+    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
     # create the model
-    model = Unet(n_classes=config.n_classes)
+    model = Unet(n_classes=cfg.n_classes)
 
     # create the loss function
     criterion = nn.BCEWithLogitsLoss()
 
     # instantiate the optimizer and scheduler
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.max_lr,
-    #                                                 total_steps=config.n_epochs * len(train_dl))
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr)
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=cfg.max_lr,
+    #                                                 total_steps=cfg.n_epochs * len(train_dl))
 
     # initialize trainer
     trainer = SegmentationBinaryTrainer(
-        config=config,
+        config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
         criterion=criterion,

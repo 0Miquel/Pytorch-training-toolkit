@@ -1,8 +1,5 @@
+# Dataset config
 data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/Clothes
-batch_size: 16
-n_epochs: 3
-
-# labels: ["nowater", "water"]
 labels: [
     "null",
     "accessories",
@@ -64,4 +61,23 @@ labels: [
     "watch",
     "wedges"
 ]
+
+
+# Early stopping config
+patience: 10000
+min_delta: 0.0
+max_mode: False
+monitor: loss
+
+# Model config
 n_classes: 59
+
+# Trainer config
+batch_size: 16
+n_epochs: 3
+device: cuda
+wandb: null
+
+# Optimizer config
+lr: 0.0001
+max_lr: 0.01

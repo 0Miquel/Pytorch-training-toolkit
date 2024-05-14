@@ -1,12 +1,23 @@
+# Dataset config
+data_path: "/media/fran/DATA/miquel/Pytorch-training-toolkit/data/Microcontroller Detection"
+labels: ["ESP8266", "Heltec_ESP32_Lora", "Arduino_Nano", "Raspberry_Pi_3"]
+
+# Early stopping config
+patience: 10000
+min_delta: 0.0
+max_mode: True
+monitor: "mAP"
+
+# Model config
+n_classes: 5
+
+# Trainer config
+batch_size: 16
+n_epochs: 5
+device: cuda
+wandb: null
 loss_computed_by_model: True
 
-data_path: "/media/fran/DATA/miquel/Pytorch-training-toolkit/data/Microcontroller Detection"
-batch_size: 1
-n_epochs: 20
-lr: 0.001
-
-monitor: "mAP"
-max_mode: True
-
-labels: ["ESP8266", "Heltec_ESP32_Lora", "Arduino_Nano", "Raspberry_Pi_3"]
-n_classes: 5
+# Optimizer config
+lr: 0.0001
+max_lr: 0.01

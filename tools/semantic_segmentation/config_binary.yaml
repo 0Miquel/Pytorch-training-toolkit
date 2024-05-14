@@ -1,10 +1,25 @@
+# Dataset config
 data_path: /media/fran/DATA/miquel/Pytorch-training-toolkit/data/Flood
-batch_size: 16
-n_epochs: 5
-
-# labels: ["nowater", "water"]
 labels: [
     "nowater",
     "water"
 ]
+
+# Early stopping config
+patience: 10000
+min_delta: 0.0
+max_mode: False
+monitor: loss
+
+# Model config
 n_classes: 1
+
+# Trainer config
+batch_size: 16
+n_epochs: 5
+device: cuda
+wandb: null
+
+# Optimizer config
+lr: 0.0001
+max_lr: 0.01

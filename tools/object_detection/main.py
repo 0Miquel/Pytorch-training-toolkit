@@ -1,23 +1,15 @@
 import hydra
 import torch
-import torch.nn as nn
-
-from hydra.core.config_store import ConfigStore
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-from src.config import Configuration
 from src.datasets import DetectionDataset
 from src.models import FasterRCNN
 from src.trainers import DetectionTrainer
 
-cs = ConfigStore.instance()
-# Registering the Config class with the name 'config'.
-cs.store(name="config", node=Configuration)
-
 
 @hydra.main(version_base=None, config_path=".", config_name="config.yaml")
-def main(config: Configuration) -> None:
+def main(cfg):
     # transforms
     transforms_train = A.Compose([
         A.Resize(width=224, height=224),
@@ -32,32 +24,32 @@ def main(config: Configuration) -> None:
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=["labels"]))
 
     # create the dataset
-    train_dataset = DetectionDataset(train=True, data_path=config.data_path, labels=config.labels,
+    train_dataset = DetectionDataset(train=True, data_path=cfg.data_path, labels=cfg.labels,
                                      transforms=transforms_train)
-    valid_dataset = DetectionDataset(train=False, data_path=config.data_path, labels=config.labels,
+    valid_dataset = DetectionDataset(train=False, data_path=cfg.data_path, labels=cfg.labels,
                                      transforms=transforms_val)
 
     # create the dataloaders
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True,
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True,
                                            collate_fn=train_dataset.collate_fn)
-    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=True,
+    val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True,
                                          collate_fn=valid_dataset.collate_fn)
 
     # create the model
-    model = FasterRCNN(n_classes=config.n_classes, pretrained=config.pretrained)
+    model = FasterRCNN(n_classes=cfg.n_classes)
 
     # instantiate the optimizer and scheduler
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr)
 
     # initialize trainer
     trainer = DetectionTrainer(
-        config=config,
+        config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
         model=model,
         optimizer=optimizer,
-        loss_computed_by_model=config.loss_computed_by_model,
-        n_classes=config.n_classes,
+        loss_computed_by_model=cfg.loss_computed_by_model,
+        n_classes=cfg.n_classes,
     )
 
     # start training
