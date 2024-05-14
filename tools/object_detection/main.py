@@ -55,6 +55,7 @@ def main(cfg):
     # start training
     best_metric = trainer.fit()
     trainer.evaluate()
+    trainer.end()
 
     return best_metric
 

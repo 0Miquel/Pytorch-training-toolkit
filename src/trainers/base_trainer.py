@@ -150,3 +150,6 @@ class BaseTrainer:
         """
         return {}
 
+    def end(self):
+        self.logger.run.finish()
+
