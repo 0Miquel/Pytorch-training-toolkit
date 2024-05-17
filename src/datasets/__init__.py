@@ -3,4 +3,4 @@ from .folder_dataset import FolderDataset
 from .flood_dataset import FloodAreaSegmentation
 from .clothes_dataset import ClothesSegmentationDataset
 from .ucf_dataset import UCFDataset
-
+from .pollution_dataset import PollutionDataset

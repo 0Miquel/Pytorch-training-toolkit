@@ -22,7 +22,8 @@ class BaseTrainer:
             model,
             optimizer,
             criterion=None,
-            scheduler=None
+            scheduler=None,
+            test_dl=None,
     ):
         set_random_seed(42)
 
@@ -41,6 +42,7 @@ class BaseTrainer:
         # DATASET
         self.train_dl = train_dl
         self.val_dl = val_dl
+        self.test_dl = test_dl
 
         # LOSS FUNCTION
         self.criterion = criterion
@@ -120,6 +122,11 @@ class BaseTrainer:
             if early_stop:
                 break
 
+        if self.test_dl is not None:
+            self.evaluate()
+
+        self.logger.finish()
+
         return self.model_checkpoint.best_metric
 
     def predict(self, model, batch):
@@ -149,7 +156,3 @@ class BaseTrainer:
         Generate media from output and batch.
         """
         return {}
-
-    def end(self):
-        self.logger.finish()
-

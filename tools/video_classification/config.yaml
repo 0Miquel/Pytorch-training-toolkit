@@ -13,8 +13,8 @@ max_mode: False
 monitor: loss
 
 # Trainer config
-batch_size: 1
-n_epochs: 10
+batch_size: 4
+n_epochs: 1
 device: cuda
 wandb: null
 loss_computed_by_model: False
