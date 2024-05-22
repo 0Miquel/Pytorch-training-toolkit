@@ -13,7 +13,7 @@ class PollutionDataset(torch.utils.data.Dataset):
     Class for the typical Folder Dataset, where a folder consists of multiple subfolders for every class which
     contains the class images. It does not support any other format like csv file.
     """
-    def __init__(self, train, transforms, data_path, class_names, cams):
+    def __init__(self, train, transforms, data_path, class_names, cams, level):
         if train:
             # self.data_path = os.path.join(data_path, "train")
             ads_path = os.path.join(data_path, "ADS-Dataset")
@@ -61,6 +61,7 @@ class PollutionDataset(torch.utils.data.Dataset):
         self.class_names = class_names
         self.num_classes = len(self.class_names)
         self.cams = cams
+        self.level = level
         self.transforms = transforms
 
     def __len__(self):
@@ -77,10 +78,11 @@ class PollutionDataset(torch.utils.data.Dataset):
         ads_data = self.ads_data[date]
         output_gt = []
         with Dataset(ads_data, mode="r") as data:
+            level_idx = np.where(self.level == data.variables['level'][:].data)[0][0]
             for pollutants in self.class_names:
                 if pollutants in data.variables:
-                    values = data.variables[pollutants][:].data[int(h)]
-                    next_values = data.variables[pollutants][:].data[int(h + 1)]
+                    values = data.variables[pollutants][:].data[int(h), level_idx]
+                    next_values = data.variables[pollutants][:].data[int(h + 1), level_idx]
                     values = np.mean(values)
                     next_values = np.mean(next_values)
                     interpolated_values = self.interpolate_values(values, next_values)
@@ -95,7 +97,8 @@ class PollutionDataset(torch.utils.data.Dataset):
         return {
             "x": transformed_img,
             "y": torch.tensor(output_gt),
-            "datetime": datetime_str
+            "datetime": datetime_str,
+            "img_path": img_path
         }
 
     @staticmethod

@@ -144,9 +144,13 @@ class BaseTrainer:
         """
         return {}
 
-    def evaluate(self):
-        print("Loading best model and generating media...")
-        self.model_checkpoint.load_best_model(self.model)
+    def evaluate(self, model_checkpoint=None):
+        if model_checkpoint is None:
+            print("Loading best model from training and generating media...")
+            self.model_checkpoint.load_best_model(self.model)
+        else:
+            print(f"Loading model from checkpoint {model_checkpoint} and generating media...")
+            self.model_checkpoint.load_from_pretrained(self.model, model_checkpoint)
         figures = self.generate_media()
         self.logger.upload_media(figures)
 

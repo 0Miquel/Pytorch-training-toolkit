@@ -58,9 +58,9 @@ class ModelCheckpoint:
         self.monitor = monitor
         self.max_mode = max_mode
         self.best_metric: float = -inf if max_mode else inf
-        Path(self.filepath).mkdir(parents=True, exist_ok=True)
 
     def __call__(self, model, metrics: dict) -> None:
+        Path(self.filepath).mkdir(parents=True, exist_ok=True)
         score = metrics[self.monitor]
         # save the last model
         filename = os.path.join(self.filepath, 'last.pt')
@@ -76,5 +76,6 @@ class ModelCheckpoint:
         filename = os.path.join(self.filepath, 'best.pt')
         model.load_state_dict(torch.load(filename))
 
-    def load_from_pretrained(self, model, path):
-        model.load(torch.load(path))
+    @staticmethod
+    def load_from_pretrained(model, path):
+        model.load_state_dict(torch.load(path))

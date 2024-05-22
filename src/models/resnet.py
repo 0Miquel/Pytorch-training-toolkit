@@ -4,24 +4,13 @@ from torchvision import models
 from torchvision.models import ResNet50_Weights, ResNet18_Weights
 
 
-class Resnet50(nn.Module):
-    def __init__(self, n_classes, fine_tune=True):
-        super(Resnet50, self).__init__()
-        self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
-
-        freeze_model(fine_tune, self.model)
-        in_features = self.model.fc.in_features
-        self.model.fc = nn.Linear(in_features=in_features, out_features=n_classes, bias=True)
-
-    def forward(self, x):
-        x = self.model(x)
-        return x
-
-
-class Resnet18(nn.Module):
-    def __init__(self, n_classes, fine_tune=True):
-        super(Resnet18, self).__init__()
-        self.model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
+class Resnet(nn.Module):
+    def __init__(self, n_classes, backbone='resnet18', fine_tune=True):
+        super(Resnet, self).__init__()
+        if backbone == 'resnet18':
+            self.model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
+        elif backbone == 'resnet50':
+            self.model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
 
         freeze_model(fine_tune, self.model)
         in_features = self.model.fc.in_features

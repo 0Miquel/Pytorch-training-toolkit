@@ -5,7 +5,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from src.datasets import FolderDataset
-from src.models import Resnet18
+from src.models import Resnet
 from src.trainers import ClassificationTrainer
 
 
@@ -35,7 +35,7 @@ def main(cfg):
     val_dl = torch.utils.data.DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
     # create the model
-    model = Resnet18(n_classes=cfg.n_classes)
+    model = Resnet(n_classes=cfg.n_classes)
 
     # create the loss function
     criterion = nn.CrossEntropyLoss()
