@@ -10,10 +10,40 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from sklearn import metrics
+import numpy as np
 import seaborn as sns
+from pytorch_grad_cam.utils.image import show_cam_on_image
+from pytorch_grad_cam import GradCAM
 
 
 class ClassificationTrainer(BaseTrainer):
+    def __init__(
+            self,
+            config,
+            train_dl,
+            val_dl,
+            model,
+            optimizer,
+            criterion=None,
+            scheduler=None,
+            test_dl=None,
+    ):
+        super().__init__(
+            config=config,
+            train_dl=train_dl,
+            val_dl=val_dl,
+            test_dl=test_dl,
+            criterion=criterion,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler
+        )
+        # UTILS
+        if hasattr(self.model, 'target_layers'):
+            self.cam = GradCAM(model=self.model, target_layers=self.model.target_layers)
+        else:
+            self.cam = None
+
     def compute_metrics(self, metric_monitor: MetricMonitor, output, batch) -> dict:
         """
         Update metric_monitor with the metrics computed from output and batch.
@@ -25,7 +55,6 @@ class ClassificationTrainer(BaseTrainer):
         metric_monitor.update("acc", acc)
         return metric_monitor.get_metrics()
 
-    @torch.no_grad()
     def generate_media(self) -> Dict[str, Figure]:
         """
         Generate media from output and batch.
@@ -41,6 +70,7 @@ class ClassificationTrainer(BaseTrainer):
             output = self.predict(self.model, batch)
             predicted.append(output)
             actual.append(batch["y"])
+
         actual = torch.cat(actual)
         predicted = torch.cat(predicted)
         predicted, actual, _ = self.post_process(predicted, actual)
@@ -51,26 +81,33 @@ class ClassificationTrainer(BaseTrainer):
         batch = load_batch_to_device(batch, self.device)
         output = self.predict(self.model, batch)
         y_pred, y_true, y_pred_prob = self.post_process(output, batch["y"])
-        classification_results = self.plot_classification_results(batch["x"], y_pred, y_true, y_pred_prob,
-                                                                  self.val_dl.dataset.labels)
+        grayscale_cam = self.cam(input_tensor=batch['x'])
+        images = tensors_to_images(batch['x'])
+        classification_results = self.plot_classification_results(images, y_pred, y_true, y_pred_prob,
+                                                                  self.val_dl.dataset.labels, grayscale_cam)
 
         return {"classification_results": classification_results, "confusion_matrix": confusion_matrix}
 
     @staticmethod
     def post_process(y_pred, y_true):
-        y_pred_prob = nn.Softmax(dim=1)(y_pred)
-        y_pred = torch.argmax(y_pred_prob, dim=1)
+        y_prob = nn.Softmax(dim=1)(y_pred)
+        y_pred = torch.argmax(y_prob, dim=1)
         y_true = torch.argmax(y_true, dim=1)
-        return y_pred.detach().cpu().numpy(), y_true.detach().cpu().numpy(), y_pred_prob.detach().cpu().numpy()
+        return y_pred.detach().cpu().numpy(), y_true.detach().cpu().numpy(), y_prob.detach().cpu().numpy()
 
     @staticmethod
-    def plot_classification_results(x, y_pred, y_true, probabilities, labels):
-        images = tensors_to_images(x)
-
-        fig, ax = plt.subplots(nrows=y_pred.shape[0], ncols=2, figsize=(4, y_pred.shape[0]))
+    def plot_classification_results(images, y_pred, y_true, y_prob, labels, grayscale_cams=None):
+        # initialize figure
+        ncols = 3
+        fig, ax = plt.subplots(nrows=y_pred.shape[0], ncols=ncols, figsize=(ncols*2, y_pred.shape[0]))
         fig.tight_layout()
 
-        for i, (img, y_pred_, y_true_, y_prob) in enumerate(zip(images, y_pred, y_true, probabilities)):
+        # plot figure
+        for i, (img, y_pred_, y_true_, y_prob_, cam) \
+                in enumerate(zip(images, y_pred, y_true, y_prob, grayscale_cams)):
+            float_img = img.astype(np.float32) / 255
+            cam_visualization = show_cam_on_image(float_img, cam, use_rgb=True)
+
             output_label = labels[int(y_pred_)]
             target_label = labels[int(y_true_)]
 
@@ -80,13 +117,16 @@ class ClassificationTrainer(BaseTrainer):
                           range(len(labels))]
             if i == 0:
                 ax[i, 0].set_title("Image")
-                ax[i, 1].set_title("Class Probabilities")
+                ax[i, 1].set_title("CAM")
+                ax[i, 2].set_title("Probabilities")
             ax[i, 0].imshow(img)
             ax[i, 0].axis('off')
             ax[i, 0].set_title(f"{target_label}")
-            ax[i, 1].bar(labels, y_prob, color=bar_colors)
-            ax[i, 1].set_ylim(0, 1.0)
-            ax[i, 1].tick_params(axis='x', rotation=30)
+            ax[i, 1].imshow(cam_visualization)
+            ax[i, 1].axis('off')
+            ax[i, 2].bar(labels, y_prob_, color=bar_colors)
+            ax[i, 2].set_ylim(0, 1.0)
+            ax[i, 2].tick_params(axis='x', rotation=30)
 
         plt.close('all')
         return fig

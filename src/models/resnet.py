@@ -15,6 +15,7 @@ class Resnet(nn.Module):
         freeze_model(fine_tune, self.model)
         in_features = self.model.fc.in_features
         self.model.fc = nn.Linear(in_features=in_features, out_features=n_classes, bias=True)
+        self.target_layers = [self.model.layer4[-1]]
 
     def forward(self, x):
         x = self.model(x)
