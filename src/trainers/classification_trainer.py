@@ -80,10 +80,10 @@ class ClassificationTrainer(BaseTrainer):
         batch = next(self.val_dl.__iter__())
         batch = load_batch_to_device(batch, self.device)
         output = self.predict(self.model, batch)
-        y_pred, y_true, y_pred_prob = self.post_process(output, batch["y"])
+        y_pred, y_true, y_prob = self.post_process(output, batch["y"])
         grayscale_cam = self.cam(input_tensor=batch['x'])
         images = tensors_to_images(batch['x'])
-        classification_results = self.plot_classification_results(images, y_pred, y_true, y_pred_prob,
+        classification_results = self.plot_classification_results(images, y_pred, y_true, y_prob,
                                                                   self.val_dl.dataset.labels, grayscale_cam)
 
         return {"classification_results": classification_results, "confusion_matrix": confusion_matrix}
