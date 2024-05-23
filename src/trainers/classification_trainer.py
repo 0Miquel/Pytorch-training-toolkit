@@ -38,7 +38,6 @@ class ClassificationTrainer(BaseTrainer):
             optimizer=optimizer,
             scheduler=scheduler
         )
-        # UTILS
         if hasattr(self.model, 'target_layers'):
             # initialize a Classification Activation Map if the model has target layers defined
             self.cam = GradCAM(model=self.model, target_layers=self.model.target_layers)
