@@ -40,6 +40,7 @@ class ClassificationTrainer(BaseTrainer):
         )
         # UTILS
         if hasattr(self.model, 'target_layers'):
+            # initialize a Classification Activation Map if the model has target layers defined
             self.cam = GradCAM(model=self.model, target_layers=self.model.target_layers)
         else:
             self.cam = None
@@ -81,8 +82,8 @@ class ClassificationTrainer(BaseTrainer):
         batch = load_batch_to_device(batch, self.device)
         output = self.predict(self.model, batch)
         y_pred, y_true, y_prob = self.post_process(output, batch["y"])
-        grayscale_cam = self.cam(input_tensor=batch['x'])
         images = tensors_to_images(batch['x'])
+        grayscale_cam = self.cam(input_tensor=batch['x']) if self.cam is not None else None
         classification_results = self.plot_classification_results(images, y_pred, y_true, y_prob,
                                                                   self.val_dl.dataset.labels, grayscale_cam)
 
@@ -98,16 +99,12 @@ class ClassificationTrainer(BaseTrainer):
     @staticmethod
     def plot_classification_results(images, y_pred, y_true, y_prob, labels, grayscale_cams=None):
         # initialize figure
-        ncols = 3
+        ncols = 3 if grayscale_cams is not None else 2
         fig, ax = plt.subplots(nrows=y_pred.shape[0], ncols=ncols, figsize=(ncols*2, y_pred.shape[0]))
         fig.tight_layout()
 
         # plot figure
-        for i, (img, y_pred_, y_true_, y_prob_, cam) \
-                in enumerate(zip(images, y_pred, y_true, y_prob, grayscale_cams)):
-            float_img = img.astype(np.float32) / 255
-            cam_visualization = show_cam_on_image(float_img, cam, use_rgb=True)
-
+        for i, (img, y_pred_, y_true_, y_prob_, cam) in enumerate(zip(images, y_pred, y_true, y_prob)):
             output_label = labels[int(y_pred_)]
             target_label = labels[int(y_true_)]
 
@@ -117,16 +114,22 @@ class ClassificationTrainer(BaseTrainer):
                           range(len(labels))]
             if i == 0:
                 ax[i, 0].set_title("Image")
-                ax[i, 1].set_title("CAM")
-                ax[i, 2].set_title("Probabilities")
+                ax[i, 1].set_title("Probabilities")
+                if grayscale_cams is not None:
+                    ax[i, 2].set_title("CAM")
             ax[i, 0].imshow(img)
             ax[i, 0].axis('off')
             ax[i, 0].set_title(f"{target_label}")
-            ax[i, 1].imshow(cam_visualization)
-            ax[i, 1].axis('off')
-            ax[i, 2].bar(labels, y_prob_, color=bar_colors)
-            ax[i, 2].set_ylim(0, 1.0)
-            ax[i, 2].tick_params(axis='x', rotation=30)
+            ax[i, 1].bar(labels, y_prob_, color=bar_colors)
+            ax[i, 1].set_ylim(0, 1.0)
+            ax[i, 1].tick_params(axis='x', rotation=30)
+
+            if grayscale_cams is not None:
+                cam = grayscale_cams[i]
+                float_img = img.astype(np.float32) / 255
+                cam_visualization = show_cam_on_image(float_img, cam, use_rgb=True)
+                ax[i, 2].imshow(cam_visualization)
+                ax[i, 2].axis('off')
 
         plt.close('all')
         return fig
