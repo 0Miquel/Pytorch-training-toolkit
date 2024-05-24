@@ -1,5 +1,5 @@
 from .detection_trainer import DetectionTrainer
 from .classification_trainer import ClassificationTrainer
-from .segmentation_trainer import SegmentationMultiTrainer, SegmentationBinaryTrainer
+from .segmentation_trainer import SegmentationTrainer
 from .metric_learning_trainer import MetricLearningTrainer
 from .regression_trainer import RegressionTrainer

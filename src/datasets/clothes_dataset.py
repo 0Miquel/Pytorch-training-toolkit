@@ -34,18 +34,13 @@ class ClothesSegmentationDataset(Dataset):
         img = cv2.imread(img_path)[:, :, ::-1]  # convert it to rgb
 
         mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
-        masks = []
-        for i, label in enumerate(self.labels):
-            label_mask = mask == i
-            masks.append(label_mask)
-        masks = np.asarray(masks, dtype='float32')
+        mask = mask.astype("float32")
 
-        transformed = self.transforms(image=img, masks=masks)
+        transformed = self.transforms(image=img, mask=mask)
         transformed_img = transformed["image"]
-        masks = transformed["masks"]
-        masks = torch.stack(masks)
+        mask = transformed["mask"]
 
         return {
             "x": transformed_img,
-            "y": masks
+            "y": mask
         }

@@ -38,8 +38,6 @@ class FloodAreaSegmentation(Dataset):
         transformed = self.transforms(image=img, mask=mask)
         transformed_img = transformed["image"]
         mask = transformed["mask"]
-        if len(mask.shape) == 2:
-            mask = mask[None, ...]
 
         return {
             "x": transformed_img,

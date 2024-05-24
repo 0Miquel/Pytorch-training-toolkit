@@ -1,12 +1,13 @@
 import hydra
 import torch
 import torch.nn as nn
+from segmentation_models_pytorch.losses import FocalLoss
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from src.datasets import FloodAreaSegmentation
 from src.models import Unet
-from src.trainers import SegmentationBinaryTrainer
+from src.trainers import SegmentationTrainer
 
 
 @hydra.main(version_base=None, config_path=".", config_name="config_binary.yaml")
@@ -38,7 +39,7 @@ def main(cfg):
     model = Unet(n_classes=cfg.n_classes)
 
     # create the loss function
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = FocalLoss(mode='binary')
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr)
@@ -46,13 +47,15 @@ def main(cfg):
     #                                                 total_steps=cfg.n_epochs * len(train_dl))
 
     # initialize trainer
-    trainer = SegmentationBinaryTrainer(
+    trainer = SegmentationTrainer(
         config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
+        test_dl=val_dl,
         criterion=criterion,
         model=model,
         optimizer=optimizer,
+        mode='binary'
         # scheduler=scheduler
     )
 
