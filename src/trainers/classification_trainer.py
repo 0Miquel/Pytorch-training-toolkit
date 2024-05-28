@@ -99,11 +99,16 @@ class ClassificationTrainer(BaseTrainer):
     def plot_classification_results(images, y_pred, y_true, y_prob, labels, grayscale_cams=None):
         # initialize figure
         ncols = 3 if grayscale_cams is not None else 2
-        fig, ax = plt.subplots(nrows=y_pred.shape[0], ncols=ncols, figsize=(ncols*2, y_pred.shape[0]))
+        fig, axes = plt.subplots(nrows=y_pred.shape[0], ncols=ncols, figsize=(ncols*2, y_pred.shape[0]))
         fig.tight_layout()
 
+        # set column titles
+        cols = ["Image", "Probabilities"] if grayscale_cams is None else ["Image", "Probabilities", "CAM"]
+        for ax, col in zip(axes[0], cols):
+            ax.set_title(col)
+
         # plot figure
-        for i, (img, y_pred_, y_true_, y_prob_, cam) in enumerate(zip(images, y_pred, y_true, y_prob)):
+        for i, (img, y_pred_, y_true_, y_prob_) in enumerate(zip(images, y_pred, y_true, y_prob)):
             output_label = labels[int(y_pred_)]
             target_label = labels[int(y_true_)]
 
@@ -111,24 +116,19 @@ class ClassificationTrainer(BaseTrainer):
             bar_colors = ['g' if j == max_idx and output_label == target_label
                           else 'r' if j == max_idx and output_label != target_label else 'b' for j in
                           range(len(labels))]
-            if i == 0:
-                ax[i, 0].set_title("Image")
-                ax[i, 1].set_title("Probabilities")
-                if grayscale_cams is not None:
-                    ax[i, 2].set_title("CAM")
-            ax[i, 0].imshow(img)
-            ax[i, 0].axis('off')
-            ax[i, 0].set_title(f"{target_label}")
-            ax[i, 1].bar(labels, y_prob_, color=bar_colors)
-            ax[i, 1].set_ylim(0, 1.0)
-            ax[i, 1].tick_params(axis='x', rotation=30)
+            axes[i, 0].imshow(img)
+            axes[i, 0].axis('off')
+            axes[i, 0].set_title(f"{target_label}")
+            axes[i, 1].bar(labels, y_prob_, color=bar_colors)
+            axes[i, 1].set_ylim(0, 1.0)
+            axes[i, 1].tick_params(axis='x', rotation=30)
 
             if grayscale_cams is not None:
                 cam = grayscale_cams[i]
                 float_img = img.astype(np.float32) / 255
                 cam_visualization = show_cam_on_image(float_img, cam, use_rgb=True)
-                ax[i, 2].imshow(cam_visualization)
-                ax[i, 2].axis('off')
+                axes[i, 2].imshow(cam_visualization)
+                axes[i, 2].axis('off')
 
         plt.close('all')
         return fig

@@ -39,6 +39,9 @@ class FloodAreaSegmentation(Dataset):
         transformed_img = transformed["image"]
         mask = transformed["mask"]
 
+        if len(mask.shape) == 2:
+            mask = mask[None, :]
+
         return {
             "x": transformed_img,
             "y": mask

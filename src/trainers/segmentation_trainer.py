@@ -78,7 +78,7 @@ class SegmentationTrainer(BaseTrainer):
         elif self.mode == 'binary':
             n_classes = None
             y_pred = nn.Sigmoid()(y_pred)
-            y_pred = (y_pred > thr).squeeze(1)
+            y_pred = y_pred > thr
         else:
             raise ValueError(f"Invalid mode: {self.mode} for segmentation.")
 
@@ -86,11 +86,22 @@ class SegmentationTrainer(BaseTrainer):
 
     @staticmethod
     def plot_segmentation_results(images, y_pred, y_true, n_classes):
-        n_classes = 2 if n_classes is None else n_classes  # for binary case
+        if n_classes is None:  # binary segmentation case
+            y_pred = y_pred[:, 0]
+            y_true = y_true[:, 0]
+            n_classes = 2  # for plot purposes
 
-        fig, axes = plt.subplots(nrows=y_pred.shape[0], ncols=3, figsize=(3, y_pred.shape[0]))
+        # initialize figure
+        ncols = 3
+        fig, axes = plt.subplots(nrows=y_pred.shape[0], ncols=ncols, figsize=(ncols, y_pred.shape[0]))
         fig.tight_layout()
 
+        # set column titles
+        cols = ["Image", "True", "Predicted"]
+        for ax, col in zip(axes[0], cols):
+            ax.set_title(col)
+
+        # plot figure
         for i, (img, y_pred_, y_true_) in enumerate(zip(images, y_pred, y_true)):
             # Create the mask images
             mask_pred = np.zeros((y_true_.shape[0], y_true_.shape[1], 3), dtype='uint8')
@@ -99,12 +110,6 @@ class SegmentationTrainer(BaseTrainer):
                 color = colors[j % len(colors)]
                 mask_true[y_true_ == j] = color
                 mask_pred[y_pred_ == j] = color
-
-            # Show the mask images in the plot
-            if i == 0:
-                axes[i, 0].set_title("Image")
-                axes[i, 1].set_title("Ground truth")
-                axes[i, 2].set_title("Predicted")
             axes[i, 0].imshow(img)
             axes[i, 0].axis('off')
             axes[i, 1].imshow(mask_true)
