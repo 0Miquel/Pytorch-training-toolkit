@@ -1,7 +1,15 @@
 import torch
+from matplotlib.figure import Figure
+from typing import Dict
+import matplotlib.pyplot as plt
+import cv2
 
 from .base_trainer import BaseTrainer
 from src.metrics import mean_average_precision, MetricMonitor
+from src.utils import (
+    load_batch_to_device,
+    tensors_to_images
+)
 
 
 class DetectionTrainer(BaseTrainer):
@@ -13,7 +21,7 @@ class DetectionTrainer(BaseTrainer):
             model,
             optimizer,
             loss_computed_by_model,
-            n_classes,
+            test_dl=None,
             criterion=None,
             scheduler=None
     ):
@@ -21,12 +29,12 @@ class DetectionTrainer(BaseTrainer):
             config=config,
             train_dl=train_dl,
             val_dl=val_dl,
+            test_dl=test_dl,
             criterion=criterion,
             model=model,
             optimizer=optimizer,
             scheduler=scheduler
         )
-        self.n_classes = n_classes
         self.loss_computed_by_model = loss_computed_by_model
 
     def predict(self, model, batch):
@@ -53,8 +61,23 @@ class DetectionTrainer(BaseTrainer):
             [a["scores"] for a in output],
             [a["boxes"] for a in batch["y"]],
             [a["labels"] for a in batch["y"]],
-            n_classes=self.n_classes,
+            n_classes=self.config.n_classes,
             threshold=0.000001,
         )
         metric_monitor.update("mAP", mAP.item())
         return metric_monitor.get_metrics()
+
+    # def generate_media(self) -> Dict[str, Figure]:
+    #     self.model.eval()
+    #
+    #     # Qualitative results
+    #     batch = next(self.val_dl.__iter__())
+    #     batch = load_batch_to_device(batch, self.device)
+    #     output = self.predict(self.model, batch)
+    #
+    #     images = tensors_to_images(batch["x"])
+    #
+    #     detection_results = self.plot_detection_results(images, output, batch["y"], self.config.class_names)
+    #
+    #     return {"segmentation_results": detection_results}
+

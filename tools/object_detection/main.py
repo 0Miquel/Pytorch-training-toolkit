@@ -4,7 +4,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from src.datasets import DetectionDataset
-from src.models import FasterRCNN
+from src.models import FasterRCNN, RetinaNet
 from src.trainers import DetectionTrainer
 
 
@@ -24,9 +24,9 @@ def main(cfg):
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=["labels"]))
 
     # create the dataset
-    train_dataset = DetectionDataset(train=True, data_path=cfg.data_path, labels=cfg.labels,
+    train_dataset = DetectionDataset(train=True, data_path=cfg.data_path, class_names=cfg.class_names,
                                      transforms=transforms_train)
-    valid_dataset = DetectionDataset(train=False, data_path=cfg.data_path, labels=cfg.labels,
+    valid_dataset = DetectionDataset(train=False, data_path=cfg.data_path, class_names=cfg.class_names,
                                      transforms=transforms_val)
 
     # create the dataloaders
@@ -36,7 +36,7 @@ def main(cfg):
                                          collate_fn=valid_dataset.collate_fn)
 
     # create the model
-    model = FasterRCNN(n_classes=cfg.n_classes)
+    model = RetinaNet(n_classes=cfg.n_classes)
 
     # instantiate the optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr)
@@ -46,10 +46,10 @@ def main(cfg):
         config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
+        test_dl=val_dl,
         model=model,
         optimizer=optimizer,
         loss_computed_by_model=cfg.loss_computed_by_model,
-        n_classes=cfg.n_classes,
     )
 
     # start training

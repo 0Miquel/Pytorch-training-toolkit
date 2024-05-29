@@ -9,14 +9,14 @@ from xml.etree import ElementTree as et
 
 # the dataset class
 class DetectionDataset(Dataset):
-    def __init__(self, train, data_path, labels, transforms):
+    def __init__(self, train, data_path, class_names, transforms):
         if train:
             self.dir_path = data_path + "/train"
         else:
             self.dir_path = data_path + "/val"
 
         self.transforms = transforms
-        self.labels = labels
+        self.class_names = class_names
 
         # get all the image paths in sorted order
         self.image_paths = glob.glob(f"{self.dir_path}/*.jpg")
@@ -42,7 +42,7 @@ class DetectionDataset(Dataset):
         for member in root.findall('object'):
             # map the current object name to `classes` list to get...
             # ... the label index and append to `labels` list
-            labels.append(self.labels.index(member.find('name').text)+1)
+            labels.append(self.class_names.index(member.find('name').text)+1)
             # xmin = left corner x-coordinates
             xmin = int(member.find('bndbox').find('xmin').text)
             # xmax = right corner x-coordinates
