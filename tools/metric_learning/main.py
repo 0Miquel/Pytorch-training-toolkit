@@ -54,6 +54,7 @@ def main(cfg):
         config=cfg,
         train_dl=train_dl,
         val_dl=val_dl,
+        test_dl=val_dl,
         criterion=criterion,
         model=model,
         optimizer=optimizer,

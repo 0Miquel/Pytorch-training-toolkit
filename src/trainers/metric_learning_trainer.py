@@ -9,10 +9,16 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import matplotlib.pyplot as plt
 import umap
+import umap.plot
 import cv2
 
 
 class MetricLearningTrainer(BaseTrainer):
+    """
+    Simple metric learning trainer implementation. It computes the metric loss only from the embeddings.
+    More advanced trainers can be found here:
+    https://kevinmusgrave.github.io/pytorch-metric-learning/trainers/
+    """
     def __init__(
             self,
             config,
@@ -20,6 +26,7 @@ class MetricLearningTrainer(BaseTrainer):
             val_dl,
             model,
             optimizer,
+            test_dl=None,
             miner=None,
             criterion=None,
             scheduler=None
@@ -28,6 +35,7 @@ class MetricLearningTrainer(BaseTrainer):
             config=config,
             train_dl=train_dl,
             val_dl=val_dl,
+            test_dl=test_dl,
             criterion=criterion,
             model=model,
             optimizer=optimizer,
@@ -62,6 +70,9 @@ class MetricLearningTrainer(BaseTrainer):
             outputs.append(output)
             labels.append(batch["label"].squeeze())
             img_paths = img_paths + batch["img_path"]
+        outputs = torch.cat(outputs)
+        labels = torch.cat(labels)
+
         umap_results = self.plot_umap(outputs, labels)
 
         # qualitative results
@@ -76,11 +87,6 @@ class MetricLearningTrainer(BaseTrainer):
 
     @staticmethod
     def plot_top_k_similar(sample_labels, sample_output, sample_img_paths, outputs, labels, img_paths, k=5):
-        if isinstance(outputs, list):
-            outputs = torch.cat(outputs)
-        if isinstance(labels, list):
-            labels = torch.cat(labels)
-
         outputs = outputs.detach().cpu().numpy()
         labels = labels.squeeze().detach().cpu().numpy()
         sample_labels = sample_labels.squeeze().detach().cpu().numpy()
@@ -126,9 +132,7 @@ class MetricLearningTrainer(BaseTrainer):
 
     @staticmethod
     def plot_umap(data, labels):
-        data = torch.cat(data)
         data = data.detach().cpu().numpy()
-        labels = torch.cat(labels)
         labels = labels.squeeze().detach().cpu().numpy()
 
         mapper = umap.UMAP().fit(data)

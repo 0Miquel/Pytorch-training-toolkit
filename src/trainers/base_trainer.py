@@ -142,7 +142,7 @@ class BaseTrainer:
         Update metric_monitor with the metrics computed from output and batch and
         return the metrics as a dictionary.
         """
-        return {}
+        return metric_monitor.get_metrics()
 
     def evaluate(self, model_checkpoint=None):
         if model_checkpoint is None:
